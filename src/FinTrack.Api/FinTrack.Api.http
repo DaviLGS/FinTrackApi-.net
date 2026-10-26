@@ -1,3 +1,60 @@
 @FinTrack.Api_HostAddress = http://localhost:5215
 
-###
+### Listar categorias
+GET {{FinTrack.Api_HostAddress}}/api/categorias
+Accept: application/json
+
+### Listar contas
+GET {{FinTrack.Api_HostAddress}}/api/contas
+Accept: application/json
+
+### Criar transação (201)
+POST {{FinTrack.Api_HostAddress}}/api/transacoes
+Content-Type: application/json
+
+{
+  "descricao": "Almoço",
+  "valor": 42.90,
+  "data": "2026-10-20T12:30:00Z",
+  "tipo": "Despesa",
+  "categoriaId": 3,
+  "contaId": 1
+}
+
+### Criar transação inválida (400)
+POST {{FinTrack.Api_HostAddress}}/api/transacoes
+Content-Type: application/json
+
+{
+  "descricao": "",
+  "valor": -10,
+  "data": "2099-01-01T00:00:00Z",
+  "tipo": "Despesa",
+  "categoriaId": 0,
+  "contaId": 0
+}
+
+### Tipo incompatível com a categoria (422)
+POST {{FinTrack.Api_HostAddress}}/api/transacoes
+Content-Type: application/json
+
+{
+  "descricao": "Despesa lançada em Salário",
+  "valor": 10,
+  "data": "2026-10-20T12:30:00Z",
+  "tipo": "Despesa",
+  "categoriaId": 1,
+  "contaId": 1
+}
+
+### Listar transações com filtros
+GET {{FinTrack.Api_HostAddress}}/api/transacoes?tipo=Despesa&page=1&pageSize=10
+Accept: application/json
+
+### Obter transação por id
+GET {{FinTrack.Api_HostAddress}}/api/transacoes/1
+Accept: application/json
+
+### Transação inexistente (404)
+GET {{FinTrack.Api_HostAddress}}/api/transacoes/999999
+Accept: application/json

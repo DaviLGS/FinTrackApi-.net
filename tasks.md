@@ -105,29 +105,35 @@
 - [x] Commit `feat: dtos, validações e serviços de aplicação`
 
 ## Fase 6 — API: controllers e endpoints REST (FinTrack.Api)
-- [ ] Instalar Swagger: `dotnet add src/FinTrack.Api package Swashbuckle.AspNetCore`
-- [ ] Configurar `Program.cs`:
-  - [ ] `AddControllers()`
+- [x] Instalar Swagger: `dotnet add src/FinTrack.Api package Swashbuckle.AspNetCore` (10.3.1)
+- [x] Remover `Microsoft.AspNetCore.OpenApi` do template e o pin de `Microsoft.OpenApi` (o Swashbuckle já traz a 2.7.5, sem vulnerabilidade)
+- [x] Habilitar comentários XML (`GenerateDocumentationFile`) para os `///` aparecerem no Swagger
+- [x] Configurar `Program.cs`:
+  - [x] `AddControllers()` + `JsonStringEnumConverter` (enums como "Receita"/"Despesa")
+  - [x] `AddRouting(LowercaseUrls = true)` (rotas `/api/transacoes` em minúsculas)
   - [x] `AddApplication()` e `AddInfrastructure(builder.Configuration)`
-  - [ ] `AddEndpointsApiExplorer()` + `AddSwaggerGen()`; `UseSwagger()` + `UseSwaggerUI()` em Development
-  - [ ] `AddProblemDetails()` + middleware de exceção
-  - [ ] (Opção A) aplicar migrations no startup em Development
-- [ ] Criar `Middlewares/ExceptionHandlingMiddleware.cs` (ValidationException → 400, NotFound → 404, regra de negócio → 422/400, demais → 500 em ProblemDetails)
-- [ ] Criar `Controllers/TransacoesController.cs`:
-  - [ ] `GET /api/transacoes` com filtros/paginação
-  - [ ] `GET /api/transacoes/{id}` → 200/404
-  - [ ] `POST /api/transacoes` → 201 com `CreatedAtAction` / 400
-  - [ ] Anotar `[ProducesResponseType]`
-- [ ] Criar `Controllers/CategoriasController.cs` (`GET /api/categorias`)
-- [ ] Criar `Controllers/ContasController.cs` (`GET /api/contas`, opcional `GET /api/contas/{id}/saldo`)
-- [ ] Rodar `dotnet run --project src/FinTrack.Api` e testar no Swagger:
-  - [ ] POST válido → 201
-  - [ ] POST com valor negativo → 400
-  - [ ] POST com categoria inexistente → 422
-  - [ ] POST com tipo incompatível com a categoria → erro de regra
-  - [ ] GET lista e GET por id
-- [ ] (Opcional) Criar `FinTrack.Api.http` com requisições de exemplo
-- [ ] Commit `feat: controllers e endpoints rest`
+  - [x] `AddEndpointsApiExplorer()` + `AddSwaggerGen()`; `UseSwagger()` + `UseSwaggerUI()` em Development
+  - [x] `AddProblemDetails()` + middleware de exceção
+  - [x] (Opção A) aplicar migrations no startup em Development (`DatabaseExtensions.AplicarMigrationsAsync`)
+  - [x] `UseHttpsRedirection()` só fora de Development (no container a API roda em HTTP)
+- [x] Criar `Middlewares/ExceptionHandlingMiddleware.cs` (ValidationException → 400 com erros por campo em camelCase, NotFound → 404, regra de negócio → 422, demais → 500 em ProblemDetails)
+- [x] Criar `Controllers/TransacoesController.cs`:
+  - [x] `GET /api/transacoes` com filtros/paginação
+  - [x] `GET /api/transacoes/{id}` → 200/404
+  - [x] `POST /api/transacoes` → 201 com `CreatedAtAction` / 400 / 422
+  - [x] Anotar `[ProducesResponseType]`
+- [x] Criar `Controllers/CategoriasController.cs` (`GET /api/categorias`)
+- [x] Criar `Controllers/ContasController.cs` (`GET /api/contas`; o endpoint de saldo ficou nos Extras)
+- [x] Rodar `dotnet run --project src/FinTrack.Api` e testar (curl + Swagger em `http://localhost:5215/swagger`):
+  - [x] POST válido → 201 (com header `Location`)
+  - [x] POST com valor negativo → 400
+  - [x] POST com tipo inexistente (`"Banana"`) → 400
+  - [x] Filtro inválido (dataFim < dataInicio, pageSize > 100) → 400
+  - [x] POST com categoria inexistente → 422
+  - [x] POST com tipo incompatível com a categoria → 422
+  - [x] GET lista (com filtros por tipo e período) e GET por id (200 e 404)
+- [x] (Opcional) Criar `FinTrack.Api.http` com requisições de exemplo
+- [x] Commit `feat: controllers e endpoints rest`
 
 ## Fase 7 — Testes unitários (FinTrack.Tests)
 - [ ] Instalar: `dotnet add tests/FinTrack.Tests package NSubstitute`

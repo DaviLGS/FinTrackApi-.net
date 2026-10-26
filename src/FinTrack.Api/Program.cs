@@ -1,5 +1,9 @@
+using System.Reflection;
+using System.Text.Json.Serialization;
+using FinTrack.Api.Middlewares;
 using FinTrack.Application;
 using FinTrack.Infrastructure;
+using FinTrack.Infrastructure.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,19 +11,38 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
+builder.Services.AddProblemDetails();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
+    options.IncludeXmlComments(xmlPath);
+});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-}
+    await app.Services.AplicarMigrationsAsync();
 
-app.UseHttpsRedirection();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+else
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthorization();
 
