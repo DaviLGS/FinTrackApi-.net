@@ -25,12 +25,12 @@ public class TransacaoRepository(AppDbContext context) : ITransacaoRepository
 
         if (filtro.DataInicio is { } dataInicio)
         {
-            var inicioUtc = ParaUtc(dataInicio);
+            var inicioUtc = dataInicio.ParaUtc();
             query = query.Where(t => t.Data >= inicioUtc);
         }
         if (filtro.DataFim is { } dataFim)
         {
-            var fimUtc = ParaUtc(dataFim);
+            var fimUtc = dataFim.ParaUtc();
             query = query.Where(t => t.Data <= fimUtc);
         }
         if (filtro.CategoriaId is { } categoriaId)
@@ -59,12 +59,4 @@ public class TransacaoRepository(AppDbContext context) : ITransacaoRepository
         context.Transacoes.Add(transacao);
         await context.SaveChangesAsync(cancellationToken);
     }
-
-    // Npgsql exige DateTime com Kind = Utc para colunas timestamptz.
-    private static DateTime ParaUtc(DateTime data) => data.Kind switch
-    {
-        DateTimeKind.Utc => data,
-        DateTimeKind.Local => data.ToUniversalTime(),
-        _ => DateTime.SpecifyKind(data, DateTimeKind.Utc)
-    };
 }

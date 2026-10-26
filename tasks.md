@@ -79,33 +79,36 @@
 - [x] Commit `feat: persistência com ef core e postgresql`
 
 ## Fase 5 — Aplicação: regras de negócio e validações (FinTrack.Application)
-- [ ] Instalar pacotes:
-  - [ ] `dotnet add src/FinTrack.Application package FluentValidation`
-  - [ ] `dotnet add src/FinTrack.Application package FluentValidation.DependencyInjectionExtensions`
-- [ ] Criar `DTOs/TransacaoCreateDto.cs` (Descricao, Valor, Data, Tipo, CategoriaId, ContaId)
-- [ ] Criar `DTOs/TransacaoResponseDto.cs` (inclui nome da categoria e da conta)
-- [ ] Criar `DTOs/CategoriaDto.cs`, `DTOs/ContaDto.cs`
+- [x] Instalar pacotes:
+  - [x] `dotnet add src/FinTrack.Application package FluentValidation`
+  - [x] `dotnet add src/FinTrack.Application package FluentValidation.DependencyInjectionExtensions`
+- [x] Criar `DTOs/TransacaoCreateDto.cs` (Descricao, Valor, Data, Tipo, CategoriaId, ContaId)
+- [x] Criar `DTOs/TransacaoResponseDto.cs` (inclui nome da categoria e da conta)
+- [x] Criar `DTOs/CategoriaDto.cs`, `DTOs/ContaDto.cs`
 - [x] Criar `DTOs/TransacaoFiltroDto.cs` (dataInicio, dataFim, categoriaId, contaId, tipo, page, pageSize) e `Common/PagedResult<T>` (feito na Fase 4, usado pelo repositório)
-- [ ] Criar `Validators/TransacaoCreateValidator.cs`:
-  - [ ] Descricao obrigatória e ≤ 200
-  - [ ] Valor > 0
-  - [ ] Data obrigatória e não futura
-  - [ ] Tipo é valor válido do enum (`IsInEnum`)
-  - [ ] CategoriaId e ContaId > 0
-- [ ] Criar exceções/resultado de aplicação (`Common/NotFoundException`, `Common/BusinessRuleException` ou `Result<T>`)
-- [ ] Criar `Interfaces/ITransacaoService.cs` e `Services/TransacaoService.cs`:
-  - [ ] `CriarAsync`: valida DTO, verifica existência de Categoria e Conta, verifica compatibilidade Tipo × Categoria.Tipo, converte Data para UTC, persiste e retorna DTO
-  - [ ] `ObterPorIdAsync`
-  - [ ] `ListarAsync(filtro)` com paginação
-- [ ] Criar serviços simples de leitura para Categorias e Contas
-- [ ] Criar `DependencyInjection.cs` com `AddApplication()` (services + `AddValidatorsFromAssemblyContaining<TransacaoCreateValidator>()`)
-- [ ] Commit `feat: dtos, validações e serviços de aplicação`
+- [x] Criar `Validators/TransacaoCreateValidator.cs`:
+  - [x] Descricao obrigatória e ≤ 200
+  - [x] Valor > 0
+  - [x] Data obrigatória e não futura (via `TimeProvider` injetado, para facilitar os testes)
+  - [x] Tipo é valor válido do enum (`IsInEnum`)
+  - [x] CategoriaId e ContaId > 0
+- [x] Criar exceções de aplicação (`Common/Exceptions/NotFoundException` → 404, `Common/Exceptions/BusinessRuleException` → 422)
+- [x] Criar `Common/DateTimeExtensions.ParaUtc()` (reaproveitado no repositório) e `Mappings/MappingExtensions` (entidade → DTO)
+- [x] Criar `Interfaces/ITransacaoService.cs` e `Services/TransacaoService.cs`:
+  - [x] `CriarAsync`: valida DTO, verifica existência de Categoria e Conta (inexistente → `BusinessRuleException`), verifica compatibilidade Tipo × Categoria.Tipo, converte Data para UTC, persiste e retorna DTO
+  - [x] `ObterPorIdAsync`
+  - [x] `ListarAsync(filtro)` com paginação
+- [x] Criar `Validators/TransacaoFiltroValidator.cs` (page > 0, pageSize 1..100, dataFim ≥ dataInicio, tipo válido)
+- [x] Criar serviços simples de leitura para Categorias e Contas
+- [x] Criar `DependencyInjection.cs` com `AddApplication()` (services + `AddValidatorsFromAssemblyContaining<TransacaoCreateValidator>()` + `TimeProvider.System`)
+- [x] Chamar `AddApplication()` no `Program.cs`
+- [x] Commit `feat: dtos, validações e serviços de aplicação`
 
 ## Fase 6 — API: controllers e endpoints REST (FinTrack.Api)
 - [ ] Instalar Swagger: `dotnet add src/FinTrack.Api package Swashbuckle.AspNetCore`
 - [ ] Configurar `Program.cs`:
   - [ ] `AddControllers()`
-  - [ ] `AddApplication()` e `AddInfrastructure(builder.Configuration)`
+  - [x] `AddApplication()` e `AddInfrastructure(builder.Configuration)`
   - [ ] `AddEndpointsApiExplorer()` + `AddSwaggerGen()`; `UseSwagger()` + `UseSwaggerUI()` em Development
   - [ ] `AddProblemDetails()` + middleware de exceção
   - [ ] (Opção A) aplicar migrations no startup em Development
@@ -120,7 +123,7 @@
 - [ ] Rodar `dotnet run --project src/FinTrack.Api` e testar no Swagger:
   - [ ] POST válido → 201
   - [ ] POST com valor negativo → 400
-  - [ ] POST com categoria inexistente → 404/400
+  - [ ] POST com categoria inexistente → 422
   - [ ] POST com tipo incompatível com a categoria → erro de regra
   - [ ] GET lista e GET por id
 - [ ] (Opcional) Criar `FinTrack.Api.http` com requisições de exemplo
@@ -138,10 +141,10 @@
   - [ ] CategoriaId/ContaId = 0 → erro
 - [ ] Criar `Services/TransacaoServiceTests.cs` (repositórios mockados com NSubstitute):
   - [ ] Criação com sucesso chama `AddAsync` e retorna DTO
-  - [ ] Categoria inexistente → exceção/erro
-  - [ ] Conta inexistente → exceção/erro
-  - [ ] Tipo incompatível com a categoria → exceção/erro
-  - [ ] ObterPorId inexistente → NotFound
+  - [ ] Categoria inexistente → `BusinessRuleException`
+  - [ ] Conta inexistente → `BusinessRuleException`
+  - [ ] Tipo incompatível com a categoria → `BusinessRuleException`
+  - [ ] ObterPorId inexistente → `NotFoundException`
 - [ ] Executar `dotnet test` e garantir tudo verde
 - [ ] Commit `test: testes unitários de validator e service`
 
