@@ -17,14 +17,14 @@
 
 ## Fase 1 — Preparação do ambiente
 - [x] Instalar .NET SDK (10 LTS, mínimo 8.0) e conferir: `dotnet --version`
-- [ ] Instalar VS Code
+- [x] Instalar VS Code
 - [ ] Instalar extensões: **C# Dev Kit**, **Container Tools/Docker** (Microsoft), **PostgreSQL** (Microsoft)
 - [ ] Habilitar WSL 2 no Windows (`wsl --install`, se necessário)
-- [ ] Instalar **Rancher Desktop**
+- [x] Instalar **Rancher Desktop**
 - [ ] Em Preferences → Container Engine, selecionar **dockerd (moby)**
 - [ ] Desabilitar Kubernetes no Rancher (opcional, economiza memória)
-- [ ] Conferir: `docker version` e `docker compose version`
-- [ ] Instalar ferramenta EF: `dotnet tool install --global dotnet-ef` e conferir `dotnet ef --version`
+- [x] Conferir: `docker version` e `docker compose version`
+- [x] Instalar ferramenta EF como tool **local** (manifesto `dotnet-tools.json` versionado): `dotnet new tool-manifest` + `dotnet tool install dotnet-ef` — em outra máquina basta `dotnet tool restore`
 
 ## Fase 2 — Estrutura da solução
 - [x] Criar solução: `dotnet new sln -n FinTrack --format sln` (no .NET 10 o padrão seria `.slnx`)
@@ -47,35 +47,36 @@
 - [x] Commit `chore: estrutura da solução em clean architecture`
 
 ## Fase 3 — Domínio (FinTrack.Domain)
-- [ ] Criar `Enums/TipoTransacao.cs` (`Receita = 1`, `Despesa = 2`)
-- [ ] Criar `Entities/EntityBase.cs` (Id)
-- [ ] Criar `Entities/Categoria.cs` (Nome, Tipo, coleção de Transacoes)
-- [ ] Criar `Entities/Conta.cs` (Nome, SaldoInicial, coleção de Transacoes)
-- [ ] Criar `Entities/Transacao.cs` (Descricao, Valor, Data, Tipo, CategoriaId, Categoria, ContaId, Conta, CriadoEm)
-- [ ] Garantir que o Domain não tem nenhum pacote NuGet
-- [ ] Commit `feat: entidades de domínio`
+- [x] Criar `Enums/TipoTransacao.cs` (`Receita = 1`, `Despesa = 2`)
+- [x] Criar `Entities/EntityBase.cs` (Id)
+- [x] Criar `Entities/Categoria.cs` (Nome, Tipo, coleção de Transacoes)
+- [x] Criar `Entities/Conta.cs` (Nome, SaldoInicial, coleção de Transacoes)
+- [x] Criar `Entities/Transacao.cs` (Descricao, Valor, Data, Tipo, CategoriaId, Categoria, ContaId, Conta, CriadoEm)
+- [x] Garantir que o Domain não tem nenhum pacote NuGet
+- [x] Commit `feat: entidades de domínio`
 
 ## Fase 4 — Persistência com EF Core + PostgreSQL (FinTrack.Infrastructure)
-- [ ] Instalar pacotes na Infrastructure:
-  - [ ] `dotnet add src/FinTrack.Infrastructure package Npgsql.EntityFrameworkCore.PostgreSQL`
-  - [ ] `dotnet add src/FinTrack.Infrastructure package Microsoft.EntityFrameworkCore.Tools`
-  - [ ] (Opcional) `dotnet add src/FinTrack.Infrastructure package EFCore.NamingConventions`
-- [ ] Instalar na Api: `dotnet add src/FinTrack.Api package Microsoft.EntityFrameworkCore.Design`
-- [ ] Criar `Context/AppDbContext.cs` com `DbSet<Categoria>`, `DbSet<Conta>`, `DbSet<Transacao>` e `ApplyConfigurationsFromAssembly`
-- [ ] Criar `Configurations/CategoriaConfiguration.cs` (tamanho, índice único em Nome, seed `HasData`)
-- [ ] Criar `Configurations/ContaConfiguration.cs` (tamanho, `HasPrecision(18,2)`, seed `HasData`)
-- [ ] Criar `Configurations/TransacaoConfiguration.cs` (tamanho, precisão, FKs com `OnDelete(Restrict)`, índices em Data/CategoriaId/ContaId)
-- [ ] Criar interfaces de repositório na **Application** (`Interfaces/ITransacaoRepository.cs`, `ICategoriaRepository.cs`, `IContaRepository.cs`)
-- [ ] Implementar `Repositories/TransacaoRepository.cs`, `CategoriaRepository.cs`, `ContaRepository.cs` (usar `AsNoTracking` nas leituras)
-- [ ] Criar `DependencyInjection.cs` com `AddInfrastructure(IServiceCollection, IConfiguration)` registrando DbContext (`UseNpgsql`) e repositórios
-- [ ] Criar `docker-compose.yml` inicial só com o serviço `db` (postgres:16-alpine, porta 5432, volume `pgdata`, healthcheck `pg_isready`)
-- [ ] Criar `.env.example` com `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` e copiar para `.env`
-- [ ] Subir o banco: `docker compose up -d db` e conferir `docker compose ps` (healthy)
-- [ ] Adicionar `ConnectionStrings:DefaultConnection` no `appsettings.Development.json` (Host=localhost)
-- [ ] Gerar migração: `dotnet ef migrations add InitialCreate --project src/FinTrack.Infrastructure --startup-project src/FinTrack.Api --output-dir Migrations`
-- [ ] Aplicar: `dotnet ef database update --project src/FinTrack.Infrastructure --startup-project src/FinTrack.Api`
-- [ ] Conferir tabelas e seed no Postgres (extensão PostgreSQL do VS Code ou `docker compose exec db psql -U fintrack -d fintrack -c "\dt"`)
-- [ ] Commit `feat: persistência com ef core e postgresql`
+- [x] Instalar pacotes na Infrastructure:
+  - [x] `dotnet add src/FinTrack.Infrastructure package Npgsql.EntityFrameworkCore.PostgreSQL`
+  - [x] `dotnet add src/FinTrack.Infrastructure package Microsoft.EntityFrameworkCore.Tools`
+  - [x] (Opcional) `dotnet add src/FinTrack.Infrastructure package EFCore.NamingConventions` (tabelas/colunas em snake_case)
+- [x] Instalar na Api: `dotnet add src/FinTrack.Api package Microsoft.EntityFrameworkCore.Design`
+- [x] Criar `Context/AppDbContext.cs` com `DbSet<Categoria>`, `DbSet<Conta>`, `DbSet<Transacao>` e `ApplyConfigurationsFromAssembly`
+- [x] Criar `Configurations/CategoriaConfiguration.cs` (tamanho, índice único em Nome, seed `HasData`)
+- [x] Criar `Configurations/ContaConfiguration.cs` (tamanho, `HasPrecision(18,2)`, seed `HasData`)
+- [x] Criar `Configurations/TransacaoConfiguration.cs` (tamanho, precisão, FKs com `OnDelete(Restrict)`, índices em Data/CategoriaId/ContaId)
+- [x] Criar interfaces de repositório na **Application** (`Interfaces/ITransacaoRepository.cs`, `ICategoriaRepository.cs`, `IContaRepository.cs`)
+- [x] Implementar `Repositories/TransacaoRepository.cs`, `CategoriaRepository.cs`, `ContaRepository.cs` (usar `AsNoTracking` nas leituras)
+- [x] Criar `DependencyInjection.cs` com `AddInfrastructure(IServiceCollection, IConfiguration)` registrando DbContext (`UseNpgsql`) e repositórios
+- [x] Chamar `AddInfrastructure` no `Program.cs` (necessário para o `dotnet ef` encontrar o DbContext)
+- [x] Criar `docker-compose.yml` inicial só com o serviço `db` (postgres:16-alpine, porta do host **5433** (já existe um PostgreSQL local na 5432), volume `pgdata`, healthcheck `pg_isready`)
+- [x] Criar `.env.example` com `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT` e copiar para `.env`
+- [x] Subir o banco: `docker compose up -d db` e conferir `docker compose ps` (healthy)
+- [x] Adicionar `ConnectionStrings:DefaultConnection` no `appsettings.Development.json` (Host=localhost;Port=5433)
+- [x] Gerar migração: `dotnet ef migrations add InitialCreate --project src/FinTrack.Infrastructure --startup-project src/FinTrack.Api --output-dir Migrations`
+- [x] Aplicar: `dotnet ef database update --project src/FinTrack.Infrastructure --startup-project src/FinTrack.Api`
+- [x] Conferir tabelas e seed no Postgres (extensão PostgreSQL do VS Code ou `docker compose exec db psql -U fintrack -d fintrack -c "\dt"`)
+- [x] Commit `feat: persistência com ef core e postgresql`
 
 ## Fase 5 — Aplicação: regras de negócio e validações (FinTrack.Application)
 - [ ] Instalar pacotes:
@@ -84,7 +85,7 @@
 - [ ] Criar `DTOs/TransacaoCreateDto.cs` (Descricao, Valor, Data, Tipo, CategoriaId, ContaId)
 - [ ] Criar `DTOs/TransacaoResponseDto.cs` (inclui nome da categoria e da conta)
 - [ ] Criar `DTOs/CategoriaDto.cs`, `DTOs/ContaDto.cs`
-- [ ] Criar `DTOs/TransacaoFiltroDto.cs` (dataInicio, dataFim, categoriaId, contaId, tipo, page, pageSize) e `Common/PagedResult<T>`
+- [x] Criar `DTOs/TransacaoFiltroDto.cs` (dataInicio, dataFim, categoriaId, contaId, tipo, page, pageSize) e `Common/PagedResult<T>` (feito na Fase 4, usado pelo repositório)
 - [ ] Criar `Validators/TransacaoCreateValidator.cs`:
   - [ ] Descricao obrigatória e ≤ 200
   - [ ] Valor > 0
@@ -167,6 +168,7 @@
 
 ## Extras (opcional)
 - [ ] PUT/DELETE de transações
+- [ ] Antes de um CRUD de categorias/contas: ajustar as sequences de identity após o seed (`HasData` usa Ids fixos 1..N e a sequence começa em 1)
 - [ ] Endpoint de saldo por conta
 - [ ] Health check `/health` (incluindo Postgres)
 - [ ] GitHub Actions: build + test em push/PR

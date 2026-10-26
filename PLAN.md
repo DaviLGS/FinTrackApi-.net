@@ -192,7 +192,7 @@ Erros padronizados em **ProblemDetails** (RFC 7807) via middleware global de exc
 `appsettings.Development.json` (dev local, API fora do container, banco no container):
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Host=localhost;Port=5432;Database=fintrack;Username=fintrack;Password=fintrack"
+  "DefaultConnection": "Host=localhost;Port=5433;Database=fintrack;Username=fintrack;Password=fintrack"
 }
 ```
 No compose, sobrescrever por variável de ambiente:
@@ -201,7 +201,7 @@ No compose, sobrescrever por variável de ambiente:
 > Credenciais reais nunca vão para o Git: usar `.env` (no `.gitignore`) e commitar só `.env.example`. Para dev local pode-se usar `dotnet user-secrets`.
 
 ### docker-compose.yml (visão geral)
-- `db`: `postgres:16-alpine`, porta `5432:5432`, volume `pgdata`, `healthcheck` com `pg_isready`.
+- `db`: `postgres:16-alpine`, porta `5433:5432` (host 5433 porque já há um PostgreSQL local na 5432), volume `pgdata`, `healthcheck` com `pg_isready`.
 - `api`: build de `src/FinTrack.Api/Dockerfile` (contexto = raiz), porta `8080:8080`, `depends_on: db (service_healthy)`, `ASPNETCORE_ENVIRONMENT=Development` para expor o Swagger.
 
 ### Dockerfile (multi-stage)
