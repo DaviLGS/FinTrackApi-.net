@@ -136,23 +136,28 @@
 - [x] Commit `feat: controllers e endpoints rest`
 
 ## Fase 7 — Testes unitários (FinTrack.Tests)
-- [ ] Instalar: `dotnet add tests/FinTrack.Tests package NSubstitute`
-- [ ] Criar `Validators/TransacaoCreateValidatorTests.cs`:
-  - [ ] DTO válido → sem erros
-  - [ ] Descricao vazia → erro
-  - [ ] Descricao > 200 caracteres → erro
-  - [ ] Valor 0 e negativo → erro (`[Theory]` + `[InlineData]`)
-  - [ ] Data futura → erro
-  - [ ] Tipo inválido → erro
-  - [ ] CategoriaId/ContaId = 0 → erro
-- [ ] Criar `Services/TransacaoServiceTests.cs` (repositórios mockados com NSubstitute):
-  - [ ] Criação com sucesso chama `AddAsync` e retorna DTO
-  - [ ] Categoria inexistente → `BusinessRuleException`
-  - [ ] Conta inexistente → `BusinessRuleException`
-  - [ ] Tipo incompatível com a categoria → `BusinessRuleException`
-  - [ ] ObterPorId inexistente → `NotFoundException`
-- [ ] Executar `dotnet test` e garantir tudo verde
-- [ ] Commit `test: testes unitários de validator e service`
+- [x] Instalar: `dotnet add tests/FinTrack.Tests package NSubstitute`
+- [x] Instalar: `dotnet add tests/FinTrack.Tests package Microsoft.Extensions.TimeProvider.Testing` (`FakeTimeProvider` fixa o "agora" nos testes de data futura)
+- [x] Criar `Validators/TransacaoCreateValidatorTests.cs`:
+  - [x] DTO válido → sem erros
+  - [x] Descricao vazia → erro
+  - [x] Descricao > 200 caracteres → erro (e exatamente 200 → válido)
+  - [x] Valor 0 e negativo → erro (`[Theory]` + `[InlineData]`)
+  - [x] Data futura → erro (data igual ao momento atual → válida; data não informada → erro)
+  - [x] Tipo inválido → erro
+  - [x] CategoriaId/ContaId = 0 → erro
+- [x] Criar `Validators/TransacaoFiltroValidatorTests.cs` (filtro padrão válido, page 0, pageSize fora de 1..100, dataFim < dataInicio, tipo inválido)
+- [x] Criar `Services/TransacaoServiceTests.cs` (repositórios mockados com NSubstitute):
+  - [x] Criação com sucesso chama `AdicionarAsync` e retorna DTO
+  - [x] Categoria inexistente → `BusinessRuleException`
+  - [x] Conta inexistente → `BusinessRuleException`
+  - [x] Tipo incompatível com a categoria → `BusinessRuleException`
+  - [x] ObterPorId inexistente → `NotFoundException` (e existente → DTO mapeado)
+  - [x] DTO inválido → `ValidationException` sem persistir
+  - [x] Data sem fuso convertida para UTC; descrição com espaços é aparada
+  - [x] ListarAsync: filtro inválido → `ValidationException`; resultado paginado mapeado
+- [x] Executar `dotnet test` e garantir tudo verde (33 testes aprovados)
+- [x] Commit `test: testes unitários de validator e service`
 
 ## Fase 8 — Containerização (Rancher Desktop)
 - [ ] Criar `src/FinTrack.Api/Dockerfile` multi-stage (sdk → aspnet), copiando `.csproj` antes do código para cache de restore
