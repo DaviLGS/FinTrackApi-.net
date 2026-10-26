@@ -160,18 +160,18 @@
 - [x] Commit `test: testes unitários de validator e service`
 
 ## Fase 8 — Containerização (Rancher Desktop)
-- [ ] Criar `src/FinTrack.Api/Dockerfile` multi-stage (sdk → aspnet), copiando `.csproj` antes do código para cache de restore
-- [ ] Criar `.dockerignore` na raiz (`bin/`, `obj/`, `.vs/`, `.vscode/`, `.git/`, `.env`)
-- [ ] Completar `docker-compose.yml`:
-  - [ ] Serviço `api` com `build: { context: ., dockerfile: src/FinTrack.Api/Dockerfile }`
-  - [ ] Porta `8080:8080`
-  - [ ] `ConnectionStrings__DefaultConnection` apontando para `Host=db`
-  - [ ] `ASPNETCORE_ENVIRONMENT=Development`
-  - [ ] `depends_on: db: condition: service_healthy`
-- [ ] Subir tudo: `docker compose up --build`
-- [ ] Acessar `http://localhost:8080/swagger` e repetir os testes da Fase 6
-- [ ] Verificar persistência: `docker compose down` + `docker compose up` mantém os dados (volume)
-- [ ] Commit `feat: dockerfile e docker-compose`
+- [x] Criar `src/FinTrack.Api/Dockerfile` multi-stage (sdk → aspnet), copiando `.csproj` antes do código para cache de restore; roda com usuário não-root (`$APP_UID`)
+- [x] Criar `.dockerignore` na raiz (`bin/`, `obj/`, `.vs/`, `.vscode/`, `.git/`, `.env`, `tests/`)
+- [x] Completar `docker-compose.yml`:
+  - [x] Serviço `api` com `build: { context: ., dockerfile: src/FinTrack.Api/Dockerfile }`
+  - [x] Porta `${API_PORT:-8080}:8080` (`API_PORT` adicionado ao `.env.example`)
+  - [x] `ConnectionStrings__DefaultConnection` apontando para `Host=db`, montada com as variáveis do `.env`
+  - [x] `ASPNETCORE_ENVIRONMENT=Development`
+  - [x] `depends_on: db: condition: service_healthy`
+- [x] Subir tudo: `docker compose up --build` (ou `-d` para rodar em segundo plano)
+- [x] Acessar `http://localhost:8080/swagger` e repetir os testes da Fase 6 (GET 200, POST 201, POST inválido 400)
+- [x] Verificar persistência: `docker compose down` + `docker compose up` mantém os dados (volume)
+- [x] Commit `feat: dockerfile e docker-compose`
 
 ## Fase 9 — Documentação e entrega
 - [ ] Completar `README.md`: descrição, arquitetura, pré-requisitos (.NET, Rancher Desktop), como rodar local e via compose, como rodar migrations e testes, lista de endpoints
