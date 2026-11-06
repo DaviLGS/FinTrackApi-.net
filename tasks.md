@@ -19,9 +19,9 @@
 - [x] Instalar .NET SDK (10 LTS, mínimo 8.0) e conferir: `dotnet --version`
 - [x] Instalar VS Code
 - [ ] Instalar extensões: **C# Dev Kit**, **Container Tools/Docker** (Microsoft), **PostgreSQL** (Microsoft)
-- [ ] Habilitar WSL 2 no Windows (`wsl --install`, se necessário)
+- [x] Habilitar WSL 2 no Windows (`wsl --install`, se necessário)
 - [x] Instalar **Rancher Desktop**
-- [ ] Em Preferences → Container Engine, selecionar **dockerd (moby)**
+- [x] Em Preferences → Container Engine, selecionar **dockerd (moby)**
 - [ ] Desabilitar Kubernetes no Rancher (opcional, economiza memória)
 - [x] Conferir: `docker version` e `docker compose version`
 - [x] Instalar ferramenta EF como tool **local** (manifesto `dotnet-tools.json` versionado): `dotnet new tool-manifest` + `dotnet tool install dotnet-ef` — em outra máquina basta `dotnet tool restore`
@@ -174,11 +174,11 @@
 - [x] Commit `feat: dockerfile e docker-compose`
 
 ## Fase 9 — Documentação e entrega
-- [ ] Completar `README.md`: descrição, arquitetura, pré-requisitos (.NET, Rancher Desktop), como rodar local e via compose, como rodar migrations e testes, lista de endpoints
-- [ ] Revisar `PLAN.md` / `tasks.md` (marcar o que foi feito)
-- [ ] Conferir que nenhum segredo (`.env`) foi commitado
-- [ ] `dotnet build` + `dotnet test` finais
-- [ ] Commit `docs: readme` e `git push`
+- [x] Completar `README.md`: descrição, arquitetura, pré-requisitos (.NET, Rancher Desktop), como rodar local e via compose, como rodar migrations e testes, lista de endpoints
+- [x] Revisar `PLAN.md` / `tasks.md` (marcar o que foi feito)
+- [x] Conferir que nenhum segredo (`.env`) foi commitado
+- [x] `dotnet build` + `dotnet test` finais (em clone limpo: 0 avisos, 33 testes aprovados; compose também validado com banco vazio)
+- [x] Commit `docs: readme` e `git push`
 
 ## Extras (opcional)
 - [ ] PUT/DELETE de transações

@@ -38,7 +38,7 @@ Construir uma API REST de controle financeiro pessoal (**FinTrack**) que permita
 | Testes | xUnit + **NSubstitute** (mocks) | Assertions nativas do xUnit (ou Shouldly). |
 | Banco | PostgreSQL 16 (imagem `postgres:16-alpine`) | Container local via compose. |
 | Containers | Rancher Desktop (moby) | `docker` CLI + `docker compose`. |
-| Ferramenta EF | `dotnet-ef` (tool global ou local) | `dotnet tool install --global dotnet-ef`. |
+| Ferramenta EF | `dotnet-ef` como tool **local** | Declarada em `dotnet-tools.json`; basta `dotnet tool restore`. |
 
 ---
 
@@ -73,13 +73,15 @@ Regra de dependência: as setas apontam **para dentro**. O Domain não conhece n
 | `FinTrack.Api` | Application, Infrastructure |
 | `FinTrack.Tests` | Domain, Application (e Api/Infrastructure se necessário) |
 
-### Estrutura de pastas alvo
+### Estrutura de pastas
 
 ```
 FinTrackApi-.net/
 ├── FinTrack.sln
 ├── docker-compose.yml
 ├── .env.example
+├── .dockerignore
+├── dotnet-tools.json
 ├── .gitignore
 ├── .editorconfig
 ├── README.md
@@ -91,13 +93,14 @@ FinTrackApi-.net/
 │   │   └── Enums/           TipoTransacao.cs
 │   ├── FinTrack.Application/
 │   │   ├── DTOs/            TransacaoCreateDto.cs, TransacaoResponseDto.cs, ...
-│   │   ├── Interfaces/      ITransacaoRepository.cs, ICategoriaRepository.cs, IContaRepository.cs, ITransacaoService.cs
-│   │   ├── Services/        TransacaoService.cs
-│   │   ├── Validators/      TransacaoCreateValidator.cs
-│   │   ├── Common/          Result / exceções de aplicação, PagedResult
+│   │   ├── Interfaces/      Repositórios e serviços (ITransacaoRepository.cs, ITransacaoService.cs, ...)
+│   │   ├── Services/        TransacaoService.cs, CategoriaService.cs, ContaService.cs
+│   │   ├── Validators/      TransacaoCreateValidator.cs, TransacaoFiltroValidator.cs
+│   │   ├── Mappings/        MappingExtensions.cs
+│   │   ├── Common/          Exceptions/, PagedResult.cs, DateTimeExtensions.cs
 │   │   └── DependencyInjection.cs   (AddApplication)
 │   ├── FinTrack.Infrastructure/
-│   │   ├── Context/         AppDbContext.cs
+│   │   ├── Context/         AppDbContext.cs, DatabaseExtensions.cs
 │   │   ├── Configurations/  CategoriaConfiguration.cs, ContaConfiguration.cs, TransacaoConfiguration.cs
 │   │   ├── Repositories/    TransacaoRepository.cs, CategoriaRepository.cs, ContaRepository.cs
 │   │   ├── Migrations/
@@ -110,7 +113,7 @@ FinTrackApi-.net/
 │       └── Dockerfile
 └── tests/
     └── FinTrack.Tests/
-        ├── Validators/      TransacaoCreateValidatorTests.cs
+        ├── Validators/      TransacaoCreateValidatorTests.cs, TransacaoFiltroValidatorTests.cs
         └── Services/        TransacaoServiceTests.cs
 ```
 
@@ -159,15 +162,15 @@ FinTrackApi-.net/
 ### Regras de negócio
 1. `Valor` sempre positivo; o sinal é dado pelo `Tipo`.
 2. O `Tipo` da transação deve ser compatível com o `Tipo` da categoria.
-3. Categoria e Conta informadas devem existir.
+3. Categoria e Conta informadas devem existir (caso contrário, HTTP 422).
 4. Data não pode ser futura.
-5. (Opcional) Saldo da conta = SaldoInicial + Σ receitas − Σ despesas (endpoint de consulta).
+5. (Extra, não implementado) Saldo da conta = SaldoInicial + Σ receitas − Σ despesas (endpoint de consulta).
 
 ### Cuidados com PostgreSQL
 - Npgsql grava `timestamp with time zone` e exige `DateTime` com `Kind = Utc` → converter para UTC no service.
 - Definir precisão de `decimal` com `HasPrecision(18, 2)`.
-- Enum salvo como `int` (padrão) ou string via `HasConversion<string>()`.
-- (Opcional) `EFCore.NamingConventions` com `UseSnakeCaseNamingConvention()` para tabelas/colunas em snake_case.
+- Enum salvo como string via `HasConversion<string>()`.
+- `EFCore.NamingConventions` com `UseSnakeCaseNamingConvention()` para tabelas/colunas em snake_case.
 
 ---
 
@@ -175,12 +178,11 @@ FinTrackApi-.net/
 
 | Método | Rota | Descrição | Respostas |
 |---|---|---|---|
-| GET | `/api/transacoes` | Lista transações (filtros: `dataInicio`, `dataFim`, `categoriaId`, `contaId`, `tipo`; paginação: `page`, `pageSize`) | 200 |
+| GET | `/api/transacoes` | Lista transações (filtros: `dataInicio`, `dataFim`, `categoriaId`, `contaId`, `tipo`; paginação: `page`, `pageSize`) | 200 / 400 |
 | GET | `/api/transacoes/{id}` | Detalhe de uma transação | 200 / 404 |
-| POST | `/api/transacoes` | Cria transação | 201 (Location) / 400 (ValidationProblemDetails) |
+| POST | `/api/transacoes` | Cria transação | 201 (Location) / 400 (ValidationProblemDetails) / 422 (regra de negócio) |
 | GET | `/api/categorias` | Lista categorias | 200 |
 | GET | `/api/contas` | Lista contas | 200 |
-| GET | `/api/contas/{id}/saldo` | (Opcional) Saldo calculado | 200 / 404 |
 
 Erros padronizados em **ProblemDetails** (RFC 7807) via middleware global de exceções.
 
@@ -196,22 +198,20 @@ Erros padronizados em **ProblemDetails** (RFC 7807) via middleware global de exc
 }
 ```
 No compose, sobrescrever por variável de ambiente:
-`ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=fintrack;Username=fintrack;Password=fintrack`
+`ConnectionStrings__DefaultConnection=Host=db;Port=5432;...`, montada com as variáveis do `.env`.
 
 > Credenciais reais nunca vão para o Git: usar `.env` (no `.gitignore`) e commitar só `.env.example`. Para dev local pode-se usar `dotnet user-secrets`.
 
 ### docker-compose.yml (visão geral)
 - `db`: `postgres:16-alpine`, porta `5433:5432` (host 5433 porque já há um PostgreSQL local na 5432), volume `pgdata`, `healthcheck` com `pg_isready`.
-- `api`: build de `src/FinTrack.Api/Dockerfile` (contexto = raiz), porta `8080:8080`, `depends_on: db (service_healthy)`, `ASPNETCORE_ENVIRONMENT=Development` para expor o Swagger.
+- `api`: build de `src/FinTrack.Api/Dockerfile` (contexto = raiz), porta `${API_PORT:-8080}:8080`, `depends_on: db (service_healthy)`, `ASPNETCORE_ENVIRONMENT=Development` para expor o Swagger.
 
 ### Dockerfile (multi-stage)
 1. `mcr.microsoft.com/dotnet/sdk:10.0` → `restore` (copiando os `.csproj` primeiro para cache) → `publish -c Release`.
 2. `mcr.microsoft.com/dotnet/aspnet:10.0` → copia o publish, `EXPOSE 8080`, `ENTRYPOINT ["dotnet","FinTrack.Api.dll"]`.
 
 ### Migrations no container
-Duas opções (escolher uma):
-- **A (simples)**: `db.Database.Migrate()` no startup quando `Development`.
-- **B**: rodar `dotnet ef database update` localmente apontando para `localhost:5432` antes de subir a API.
+Escolhida a aplicação automática no startup quando o ambiente é `Development` (`DatabaseExtensions.AplicarMigrationsAsync`). Também é possível rodar `dotnet ef database update` localmente, apontando para `localhost:5433`.
 
 ---
 
@@ -230,7 +230,7 @@ Duas opções (escolher uma):
 | 8. Containers | Dockerfile + compose completo | `docker compose up --build` sobe API + banco; Swagger acessível em `http://localhost:8080/swagger` |
 | 9. Documentação | README com como rodar, endpoints e decisões | README revisado, push final |
 
-Estratégia de Git: um branch por fase (`feat/fase-2-estrutura`, ...) com PR para `main`, ou commits diretos em `main` com mensagens no padrão Conventional Commits (`feat:`, `chore:`, `test:`, `docs:`).
+Estratégia de Git adotada: commits diretos em `main` com mensagens no padrão Conventional Commits (`feat:`, `chore:`, `test:`, `docs:`).
 
 ---
 
@@ -238,8 +238,8 @@ Estratégia de Git: um branch por fase (`feat/fase-2-estrutura`, ...) com PR par
 
 - **Rancher Desktop** precisa estar com o container engine **dockerd (moby)** (Preferences → Container Engine). Com `containerd` os comandos passam a ser `nerdctl`.
 - Rancher Desktop no Windows usa **WSL 2**: habilitar antes da instalação.
-- Porta 5432 pode já estar em uso se houver um PostgreSQL instalado no Windows → mudar para `5433:5432`.
-- `DateTime` não-UTC causa exceção no Npgsql.
+- A porta 5432 pode estar em uso por um PostgreSQL instalado no Windows → por isso o compose publica o banco na `5433`.
+- `DateTime` não-UTC causa exceção no Npgsql → `DateTimeExtensions.ParaUtc()` normaliza as datas; data sem fuso é tratada como UTC.
 - Versões de pacotes EF Core / Npgsql devem ter o **mesmo major** do .NET usado.
 - O `dotnet ef` precisa do pacote `Microsoft.EntityFrameworkCore.Design` no startup project (Api).
 - Pasta de trabalho com espaço no nome (`Desafio .NET`) → sempre usar aspas nos caminhos do terminal.
@@ -249,6 +249,7 @@ Estratégia de Git: um branch por fase (`feat/fase-2-estrutura`, ...) com PR par
 ## 9. Evoluções futuras (fora do escopo inicial)
 - PUT/DELETE de transações, CRUD de categorias e contas.
 - Autenticação JWT.
+- Endpoint de saldo por conta.
 - Testes de integração com `WebApplicationFactory` + Testcontainers (PostgreSQL).
 - CI no GitHub Actions (build + test).
 - Logging estruturado (Serilog) e health checks (`/health`).
