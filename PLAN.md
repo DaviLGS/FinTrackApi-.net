@@ -35,7 +35,9 @@ Construir uma API REST de controle financeiro pessoal (**FinTrack**) que permita
 | Documentação | **Swashbuckle.AspNetCore** (Swagger UI) | A partir do .NET 9 o template não traz Swagger UI; adicionar o pacote. |
 | ORM | EF Core + **Npgsql.EntityFrameworkCore.PostgreSQL** | `Microsoft.EntityFrameworkCore.Design` na Api para o `dotnet ef`. |
 | Validação | **FluentValidation** + `FluentValidation.DependencyInjectionExtensions` | `FluentValidation.AspNetCore` (auto-validation) está descontinuado; validar explicitamente no service/endpoint. |
-| Testes | xUnit + **NSubstitute** (mocks) | Assertions nativas do xUnit (ou Shouldly). |
+| Testes | xUnit + **NSubstitute** (mocks) + **Testcontainers** (integração) | Assertions nativas do xUnit. |
+| Logs | **Serilog** no console | Uma linha por requisição; níveis no `appsettings.json`. |
+| CI | **GitHub Actions** | Build, testes e imagem Docker a cada push/PR na `main`. |
 | Banco | PostgreSQL 16 (imagem `postgres:16-alpine`) | Container local via compose. |
 | Containers | Rancher Desktop (moby) | `docker` CLI + `docker compose`. |
 | Ferramenta EF | `dotnet-ef` como tool **local** | Declarada em `dotnet-tools.json`; basta `dotnet tool restore`. |
@@ -71,7 +73,8 @@ Regra de dependência: as setas apontam **para dentro**. O Domain não conhece n
 | `FinTrack.Application` | Domain |
 | `FinTrack.Infrastructure` | Application, Domain |
 | `FinTrack.Api` | Application, Infrastructure |
-| `FinTrack.Tests` | Domain, Application (e Api/Infrastructure se necessário) |
+| `FinTrack.Tests` | Domain, Application |
+| `FinTrack.IntegrationTests` | Api, Application |
 
 ### Estrutura de pastas
 
@@ -112,9 +115,10 @@ FinTrackApi-.net/
 │       ├── appsettings.json / appsettings.Development.json
 │       └── Dockerfile
 └── tests/
+    ├── FinTrack.IntegrationTests/   ApiFactory.cs, ApiTests.cs
     └── FinTrack.Tests/
         ├── Validators/      TransacaoCreateValidatorTests.cs, TransacaoFiltroValidatorTests.cs
-        └── Services/        TransacaoServiceTests.cs
+        └── Services/        TransacaoServiceTests.cs, ContaServiceTests.cs
 ```
 
 ---
@@ -164,7 +168,7 @@ FinTrackApi-.net/
 2. O `Tipo` da transação deve ser compatível com o `Tipo` da categoria.
 3. Categoria e Conta informadas devem existir (caso contrário, HTTP 422).
 4. Data não pode ser futura.
-5. (Extra, não implementado) Saldo da conta = SaldoInicial + Σ receitas − Σ despesas (endpoint de consulta).
+5. Saldo da conta = SaldoInicial + Σ receitas − Σ despesas (endpoint de consulta).
 
 ### Cuidados com PostgreSQL
 - Npgsql grava `timestamp with time zone` e exige `DateTime` com `Kind = Utc` → converter para UTC no service.
@@ -183,6 +187,10 @@ FinTrackApi-.net/
 | POST | `/api/transacoes` | Cria transação | 201 (Location) / 400 (ValidationProblemDetails) / 422 (regra de negócio) |
 | GET | `/api/categorias` | Lista categorias | 200 |
 | GET | `/api/contas` | Lista contas | 200 |
+| GET | `/api/contas/{id}/saldo` | Saldo calculado | 200 / 404 |
+| PUT | `/api/transacoes/{id}` | Substitui os dados | 200 / 400 / 404 / 422 |
+| DELETE | `/api/transacoes/{id}` | Remove | 204 / 404 |
+| GET | `/health` | API e conexão com o banco | 200 / 503 |
 
 Erros padronizados em **ProblemDetails** (RFC 7807) via middleware global de exceções.
 
@@ -247,9 +255,8 @@ Estratégia de Git adotada: commits diretos em `main` com mensagens no padrão C
 ---
 
 ## 9. Evoluções futuras (fora do escopo inicial)
-- PUT/DELETE de transações, CRUD de categorias e contas.
+- CRUD de categorias e contas.
 - Autenticação JWT.
-- Endpoint de saldo por conta.
 - Testes de integração com `WebApplicationFactory` + Testcontainers (PostgreSQL).
 - CI no GitHub Actions (build + test).
 - Logging estruturado (Serilog) e health checks (`/health`).

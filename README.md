@@ -2,7 +2,7 @@
 
 API REST de controle financeiro pessoal: registra e consulta **transações** (receitas e despesas), vinculadas a **contas** e **categorias**.
 
-Feita em **.NET 10** com **Clean Architecture**, **EF Core + PostgreSQL**, **FluentValidation**, **Swagger** e testes com **xUnit**. Os containers rodam no **Rancher Desktop**.
+Feita em **.NET 10** com **Clean Architecture**, **EF Core + PostgreSQL**, **FluentValidation**, **Swagger**, **Serilog** e testes com **xUnit** e **Testcontainers**. Os containers rodam no **Rancher Desktop**.
 
 O plano do projeto está em [PLAN.md](PLAN.md) e o andamento em [tasks.md](tasks.md).
 
@@ -60,11 +60,19 @@ O arquivo [FinTrack.Api.http](src/FinTrack.Api/FinTrack.Api.http) tem exemplos d
 
 ## Testes
 
+Testes unitários dos validadores e dos serviços, com os repositórios simulados. Não precisam de banco nem de Docker:
+
 ```bash
-dotnet test
+dotnet test tests/FinTrack.Tests
 ```
 
-São testes unitários dos validadores e do `TransacaoService`, com os repositórios simulados. Não precisam de banco nem de Docker.
+Testes de integração, que chamam a API em memória ligada a um PostgreSQL real. O Testcontainers cria e remove um container descartável, então o Rancher Desktop precisa estar aberto, mas o banco de desenvolvimento não é tocado:
+
+```bash
+dotnet test tests/FinTrack.IntegrationTests
+```
+
+Para rodar tudo, use `dotnet test`. O GitHub Actions ([ci.yml](.github/workflows/ci.yml)) faz o build, roda todos os testes e monta a imagem Docker a cada push ou pull request na `main`.
 
 ## Migrations
 
@@ -97,8 +105,12 @@ Na primeira execução com o banco vazio, o log mostra uma linha `fail` para `SE
 | GET | `/api/transacoes` | Lista transações, das mais recentes para as mais antigas | 200, 400 |
 | GET | `/api/transacoes/{id}` | Busca uma transação | 200, 404 |
 | POST | `/api/transacoes` | Cria uma transação | 201, 400, 422 |
+| PUT | `/api/transacoes/{id}` | Substitui os dados de uma transação | 200, 400, 404, 422 |
+| DELETE | `/api/transacoes/{id}` | Remove uma transação | 204, 404 |
 | GET | `/api/categorias` | Lista as categorias | 200 |
 | GET | `/api/contas` | Lista as contas | 200 |
+| GET | `/api/contas/{id}/saldo` | Calcula o saldo: saldo inicial + receitas - despesas | 200, 404 |
+| GET | `/health` | Verifica a API e a conexão com o banco | 200, 503 |
 
 Filtros opcionais de `GET /api/transacoes`: `dataInicio`, `dataFim`, `categoriaId`, `contaId`, `tipo`, `page` (padrão 1) e `pageSize` (padrão 20, máximo 100).
 
@@ -118,6 +130,8 @@ Content-Type: application/json
 }
 ```
 
+O `PUT` usa o mesmo corpo e as mesmas regras. Ele não altera `criadoEm`.
+
 ### Regras
 
 - `descricao` é obrigatória, com até 200 caracteres.
@@ -133,7 +147,7 @@ Os erros seguem o formato ProblemDetails (RFC 7807):
 | Status | Quando |
 |---|---|
 | 400 | Campos ou filtros inválidos. A resposta lista os erros por campo. |
-| 404 | A transação buscada não existe. |
+| 404 | A transação ou a conta da rota não existe. |
 | 422 | Regra de negócio violada: categoria ou conta inexistente, ou tipo incompatível com a categoria. |
 | 500 | Erro inesperado. Os detalhes ficam só no log. |
 
@@ -161,11 +175,15 @@ As dependências apontam para dentro, e o Domain não depende de nenhuma outra c
 | `FinTrack.Infrastructure` | EF Core, `AppDbContext`, repositórios e migrations | Application, Domain |
 | `FinTrack.Api` | Controllers, middleware de erros, Swagger e `Program.cs` | Application, Infrastructure |
 | `FinTrack.Tests` | Testes unitários | Application, Domain |
+| `FinTrack.IntegrationTests` | Testes da API com PostgreSQL real | Api, Application |
+
+## Logs
+
+A API usa o Serilog e escreve no console, com uma linha por requisição. Os níveis ficam na seção `Serilog` do `appsettings.json`.
 
 ## Limitações atuais
 
 - Não há autenticação.
-- Transações só podem ser criadas e consultadas: ainda não há edição nem exclusão.
 - Categorias e contas são somente leitura e vêm dos dados iniciais.
 - O compose roda a API em `Development`, para ter Swagger e migrations automáticas. Ele serve para desenvolvimento, não para produção.
 - Fora de `Development`, não há Swagger nem migrations automáticas, e a connection string precisa vir de configuração (por exemplo, a variável `ConnectionStrings__DefaultConnection`).

@@ -18,7 +18,7 @@
 ## Fase 1 — Preparação do ambiente
 - [x] Instalar .NET SDK (10 LTS, mínimo 8.0) e conferir: `dotnet --version`
 - [x] Instalar VS Code
-- [ ] Instalar extensões: **C# Dev Kit**, **Container Tools/Docker** (Microsoft), **PostgreSQL** (Microsoft)
+- [x] Instalar extensões: **C# Dev Kit**, **Container Tools/Docker** (Microsoft), **PostgreSQL** (Microsoft)
 - [x] Habilitar WSL 2 no Windows (`wsl --install`, se necessário)
 - [x] Instalar **Rancher Desktop**
 - [x] Em Preferences → Container Engine, selecionar **dockerd (moby)**
@@ -181,10 +181,10 @@
 - [x] Commit `docs: readme` e `git push`
 
 ## Extras (opcional)
-- [ ] PUT/DELETE de transações
+- [x] PUT/DELETE de transações
 - [ ] Antes de um CRUD de categorias/contas: ajustar as sequences de identity após o seed (`HasData` usa Ids fixos 1..N e a sequence começa em 1)
-- [ ] Endpoint de saldo por conta
-- [ ] Health check `/health` (incluindo Postgres)
-- [ ] GitHub Actions: build + test em push/PR
-- [ ] Testes de integração com `WebApplicationFactory` + Testcontainers
-- [ ] Logging com Serilog
+- [x] Endpoint de saldo por conta (`GET /api/contas/{id}/saldo`)
+- [x] Health check `/health` (incluindo Postgres; banco fora do ar → 503)
+- [ ] GitHub Actions: build + test em push/PR (`.github/workflows/ci.yml` criado; falta confirmar a primeira execução no GitHub, após o push)
+- [x] Testes de integração com `WebApplicationFactory` + Testcontainers (`tests/FinTrack.IntegrationTests`, 14 testes)
+- [x] Logging com Serilog
