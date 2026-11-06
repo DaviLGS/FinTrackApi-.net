@@ -14,4 +14,11 @@ public class ContasController(IContaService contaService) : ControllerBase
     [ProducesResponseType<IReadOnlyList<ContaDto>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<ContaDto>>> Listar(CancellationToken cancellationToken) =>
         Ok(await contaService.ListarAsync(cancellationToken));
+
+    /// <summary>Calcula o saldo da conta: saldo inicial + receitas - despesas.</summary>
+    [HttpGet("{id:int}/saldo")]
+    [ProducesResponseType<ContaSaldoDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ContaSaldoDto>> ObterSaldo(int id, CancellationToken cancellationToken) =>
+        Ok(await contaService.ObterSaldoAsync(id, cancellationToken));
 }

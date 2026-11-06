@@ -2,6 +2,7 @@ using FinTrack.Application.Common;
 using FinTrack.Application.DTOs;
 using FinTrack.Application.Interfaces;
 using FinTrack.Domain.Entities;
+using FinTrack.Domain.Enums;
 using FinTrack.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -58,5 +59,43 @@ public class TransacaoRepository(AppDbContext context) : ITransacaoRepository
     {
         context.Transacoes.Add(transacao);
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<bool> AtualizarAsync(Transacao transacao, CancellationToken cancellationToken = default)
+    {
+        var linhas = await context.Transacoes
+            .Where(t => t.Id == transacao.Id)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(t => t.Descricao, transacao.Descricao)
+                .SetProperty(t => t.Valor, transacao.Valor)
+                .SetProperty(t => t.Data, transacao.Data)
+                .SetProperty(t => t.Tipo, transacao.Tipo)
+                .SetProperty(t => t.CategoriaId, transacao.CategoriaId)
+                .SetProperty(t => t.ContaId, transacao.ContaId),
+                cancellationToken);
+
+        return linhas > 0;
+    }
+
+    public async Task<bool> RemoverAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var linhas = await context.Transacoes
+            .Where(t => t.Id == id)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        return linhas > 0;
+    }
+
+    public async Task<(decimal Receitas, decimal Despesas)> ObterTotaisPorContaAsync(int contaId, CancellationToken cancellationToken = default)
+    {
+        var totais = await context.Transacoes
+            .Where(t => t.ContaId == contaId)
+            .GroupBy(t => t.Tipo)
+            .Select(g => new { Tipo = g.Key, Total = g.Sum(t => t.Valor) })
+            .ToListAsync(cancellationToken);
+
+        return (
+            totais.Where(t => t.Tipo == TipoTransacao.Receita).Sum(t => t.Total),
+            totais.Where(t => t.Tipo == TipoTransacao.Despesa).Sum(t => t.Total));
     }
 }

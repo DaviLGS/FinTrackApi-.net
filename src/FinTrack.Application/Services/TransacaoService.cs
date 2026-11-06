@@ -19,31 +19,37 @@ public class TransacaoService(
     {
         await createValidator.ValidateAndThrowAsync(dto, cancellationToken);
 
-        var categoria = await categoriaRepository.ObterPorIdAsync(dto.CategoriaId, cancellationToken)
-            ?? throw new BusinessRuleException($"Categoria com id '{dto.CategoriaId}' não existe.");
+        var (categoria, conta) = await ObterReferenciasAsync(dto, cancellationToken);
 
-        var conta = await contaRepository.ObterPorIdAsync(dto.ContaId, cancellationToken)
-            ?? throw new BusinessRuleException($"Conta com id '{dto.ContaId}' não existe.");
-
-        if (categoria.Tipo != dto.Tipo)
-        {
-            throw new BusinessRuleException(
-                $"A categoria '{categoria.Nome}' é do tipo '{categoria.Tipo}' e não aceita transações do tipo '{dto.Tipo}'.");
-        }
-
-        var transacao = new Transacao
-        {
-            Descricao = dto.Descricao.Trim(),
-            Valor = dto.Valor,
-            Data = dto.Data.ParaUtc(),
-            Tipo = dto.Tipo,
-            CategoriaId = categoria.Id,
-            ContaId = conta.Id
-        };
+        var transacao = new Transacao();
+        AplicarDados(transacao, dto);
 
         await transacaoRepository.AdicionarAsync(transacao, cancellationToken);
 
         return transacao.ToDto(categoria, conta);
+    }
+
+    public async Task<TransacaoResponseDto> AtualizarAsync(int id, TransacaoCreateDto dto, CancellationToken cancellationToken = default)
+    {
+        await createValidator.ValidateAndThrowAsync(dto, cancellationToken);
+
+        var transacao = await transacaoRepository.ObterPorIdAsync(id, cancellationToken)
+            ?? throw new NotFoundException("Transação", id);
+
+        var (categoria, conta) = await ObterReferenciasAsync(dto, cancellationToken);
+
+        AplicarDados(transacao, dto);
+
+        if (!await transacaoRepository.AtualizarAsync(transacao, cancellationToken))
+            throw new NotFoundException("Transação", id);
+
+        return transacao.ToDto(categoria, conta);
+    }
+
+    public async Task RemoverAsync(int id, CancellationToken cancellationToken = default)
+    {
+        if (!await transacaoRepository.RemoverAsync(id, cancellationToken))
+            throw new NotFoundException("Transação", id);
     }
 
     public async Task<TransacaoResponseDto> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)
@@ -65,5 +71,32 @@ public class TransacaoService(
             resultado.Page,
             resultado.PageSize,
             resultado.TotalItems);
+    }
+
+    private async Task<(Categoria Categoria, Conta Conta)> ObterReferenciasAsync(TransacaoCreateDto dto, CancellationToken cancellationToken)
+    {
+        var categoria = await categoriaRepository.ObterPorIdAsync(dto.CategoriaId, cancellationToken)
+            ?? throw new BusinessRuleException($"Categoria com id '{dto.CategoriaId}' não existe.");
+
+        var conta = await contaRepository.ObterPorIdAsync(dto.ContaId, cancellationToken)
+            ?? throw new BusinessRuleException($"Conta com id '{dto.ContaId}' não existe.");
+
+        if (categoria.Tipo != dto.Tipo)
+        {
+            throw new BusinessRuleException(
+                $"A categoria '{categoria.Nome}' é do tipo '{categoria.Tipo}' e não aceita transações do tipo '{dto.Tipo}'.");
+        }
+
+        return (categoria, conta);
+    }
+
+    private static void AplicarDados(Transacao transacao, TransacaoCreateDto dto)
+    {
+        transacao.Descricao = dto.Descricao.Trim();
+        transacao.Valor = dto.Valor;
+        transacao.Data = dto.Data.ParaUtc();
+        transacao.Tipo = dto.Tipo;
+        transacao.CategoriaId = dto.CategoriaId;
+        transacao.ContaId = dto.ContaId;
     }
 }

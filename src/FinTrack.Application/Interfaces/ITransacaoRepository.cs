@@ -13,4 +13,12 @@ public interface ITransacaoRepository
     Task<PagedResult<Transacao>> ListarAsync(TransacaoFiltroDto filtro, CancellationToken cancellationToken = default);
 
     Task AdicionarAsync(Transacao transacao, CancellationToken cancellationToken = default);
+
+    /// <summary>Atualiza os dados editáveis (não altera CriadoEm). Retorna false se a transação não existir mais.</summary>
+    Task<bool> AtualizarAsync(Transacao transacao, CancellationToken cancellationToken = default);
+
+    /// <summary>Retorna false se a transação não existir.</summary>
+    Task<bool> RemoverAsync(int id, CancellationToken cancellationToken = default);
+
+    Task<(decimal Receitas, decimal Despesas)> ObterTotaisPorContaAsync(int contaId, CancellationToken cancellationToken = default);
 }

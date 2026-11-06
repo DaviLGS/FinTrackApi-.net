@@ -159,6 +159,72 @@ public class TransacaoServiceTests
     }
 
     [Fact]
+    public async Task AtualizarAsync_com_dados_validos_persiste_e_preserva_CriadoEm()
+    {
+        var criadoEm = Agora.UtcDateTime.AddDays(-5);
+        _transacaoRepository.ObterPorIdAsync(5, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<Transacao?>(new Transacao { Id = 5, Descricao = "Antiga", CriadoEm = criadoEm }));
+        _transacaoRepository.AtualizarAsync(Arg.Any<Transacao>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        var resultado = await _service.AtualizarAsync(5, DtoValido());
+
+        await _transacaoRepository.Received(1).AtualizarAsync(
+            Arg.Is<Transacao>(t => t.Id == 5 && t.Descricao == "Almoço" && t.Valor == 42.90m),
+            Arg.Any<CancellationToken>());
+        Assert.Equal(5, resultado.Id);
+        Assert.Equal("Almoço", resultado.Descricao);
+        Assert.Equal(criadoEm, resultado.CriadoEm);
+    }
+
+    [Fact]
+    public async Task AtualizarAsync_inexistente_lanca_NotFoundException()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.AtualizarAsync(999, DtoValido()));
+
+        await _transacaoRepository.DidNotReceiveWithAnyArgs().AtualizarAsync(default!, default);
+    }
+
+    [Fact]
+    public async Task AtualizarAsync_removida_durante_a_operacao_lanca_NotFoundException()
+    {
+        _transacaoRepository.ObterPorIdAsync(5, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<Transacao?>(new Transacao { Id = 5 }));
+        _transacaoRepository.AtualizarAsync(Arg.Any<Transacao>(), Arg.Any<CancellationToken>()).Returns(false);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.AtualizarAsync(5, DtoValido()));
+    }
+
+    [Fact]
+    public async Task AtualizarAsync_com_tipo_incompativel_lanca_BusinessRuleException_e_nao_persiste()
+    {
+        _transacaoRepository.ObterPorIdAsync(5, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<Transacao?>(new Transacao { Id = 5 }));
+        var dto = DtoValido() with { CategoriaId = Salario.Id };
+
+        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.AtualizarAsync(5, dto));
+
+        await _transacaoRepository.DidNotReceiveWithAnyArgs().AtualizarAsync(default!, default);
+    }
+
+    [Fact]
+    public async Task RemoverAsync_inexistente_lanca_NotFoundException()
+    {
+        _transacaoRepository.RemoverAsync(999, Arg.Any<CancellationToken>()).Returns(false);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.RemoverAsync(999));
+    }
+
+    [Fact]
+    public async Task RemoverAsync_existente_conclui_sem_erro()
+    {
+        _transacaoRepository.RemoverAsync(5, Arg.Any<CancellationToken>()).Returns(true);
+
+        await _service.RemoverAsync(5);
+
+        await _transacaoRepository.Received(1).RemoverAsync(5, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task ListarAsync_com_filtro_invalido_lanca_ValidationException()
     {
         var filtro = new TransacaoFiltroDto { PageSize = 0 };

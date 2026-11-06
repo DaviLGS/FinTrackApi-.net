@@ -37,4 +37,25 @@ public class TransacoesController(ITransacaoService transacaoService) : Controll
         var criada = await transacaoService.CriarAsync(dto, cancellationToken);
         return CreatedAtAction(nameof(ObterPorId), new { id = criada.Id }, criada);
     }
+
+    /// <summary>Substitui os dados de uma transação. Segue as mesmas regras da criação.</summary>
+    [HttpPut("{id:int}")]
+    [Consumes("application/json")]
+    [ProducesResponseType<TransacaoResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<ActionResult<TransacaoResponseDto>> Atualizar(
+        int id, [FromBody] TransacaoCreateDto dto, CancellationToken cancellationToken) =>
+        Ok(await transacaoService.AtualizarAsync(id, dto, cancellationToken));
+
+    /// <summary>Remove uma transação.</summary>
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Remover(int id, CancellationToken cancellationToken)
+    {
+        await transacaoService.RemoverAsync(id, cancellationToken);
+        return NoContent();
+    }
 }
