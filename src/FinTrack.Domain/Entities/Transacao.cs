@@ -20,5 +20,9 @@ public class Transacao : EntityBase
     public int ContaId { get; set; }
     public Conta? Conta { get; set; }
 
+    /// <summary>Dono da transação: cada usuário só enxerga as próprias.</summary>
+    public int UsuarioId { get; set; }
+    public Usuario? Usuario { get; set; }
+
     public DateTime CriadoEm { get; set; }
 }

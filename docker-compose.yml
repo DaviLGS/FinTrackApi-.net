@@ -28,7 +28,10 @@ services:
     environment:
       # Development habilita o Swagger e aplica as migrations no startup
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB:-fintrack};Username=${POSTGRES_USER:-fintrack};Password=${POSTGRES_PASSWORD}"
+      # Gss Encryption Mode=Disable: a imagem não tem a biblioteca do Kerberos, que o Npgsql tentaria carregar
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB:-fintrack};Username=${POSTGRES_USER:-fintrack};Password=${POSTGRES_PASSWORD};Gss Encryption Mode=Disable"
+      # Chave que assina os tokens JWT (mínimo de 32 caracteres)
+      Jwt__Key: ${JWT_KEY:?Defina JWT_KEY no arquivo .env}
     ports:
       - "${API_PORT:-8080}:8080"
     depends_on:

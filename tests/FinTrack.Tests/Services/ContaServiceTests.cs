@@ -10,11 +10,15 @@ public class ContaServiceTests
 {
     private readonly IContaRepository _contaRepository = Substitute.For<IContaRepository>();
     private readonly ITransacaoRepository _transacaoRepository = Substitute.For<ITransacaoRepository>();
+    private readonly IUsuarioAtual _usuarioAtual = Substitute.For<IUsuarioAtual>();
     private readonly ContaService _service;
+
+    private const int UsuarioId = 7;
 
     public ContaServiceTests()
     {
-        _service = new ContaService(_contaRepository, _transacaoRepository);
+        _usuarioAtual.Id.Returns(UsuarioId);
+        _service = new ContaService(_contaRepository, _transacaoRepository, _usuarioAtual);
     }
 
     [Fact]
@@ -22,7 +26,7 @@ public class ContaServiceTests
     {
         _contaRepository.ObterPorIdAsync(1, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Conta?>(new Conta { Id = 1, Nome = "Carteira", SaldoInicial = 100m }));
-        _transacaoRepository.ObterTotaisPorContaAsync(1, Arg.Any<CancellationToken>())
+        _transacaoRepository.ObterTotaisPorContaAsync(1, UsuarioId, Arg.Any<CancellationToken>())
             .Returns((50m, 30.5m));
 
         var saldo = await _service.ObterSaldoAsync(1);

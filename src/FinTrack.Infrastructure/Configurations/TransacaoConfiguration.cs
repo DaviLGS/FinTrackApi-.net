@@ -34,6 +34,11 @@ public class TransacaoConfiguration : IEntityTypeConfiguration<Transacao>
             .HasForeignKey(t => t.ContaId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(t => t.Usuario)
+            .WithMany(u => u.Transacoes)
+            .HasForeignKey(t => t.UsuarioId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasIndex(t => t.Data);
     }
 }

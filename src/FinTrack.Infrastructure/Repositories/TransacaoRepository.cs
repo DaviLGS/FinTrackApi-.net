@@ -8,21 +8,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinTrack.Infrastructure.Repositories;
 
+// Todas as operações filtram pelo usuário dono: transações de outro usuário se comportam como inexistentes.
 public class TransacaoRepository(AppDbContext context) : ITransacaoRepository
 {
-    public Task<Transacao?> ObterPorIdAsync(int id, CancellationToken cancellationToken = default) =>
+    public Task<Transacao?> ObterPorIdAsync(int id, int usuarioId, CancellationToken cancellationToken = default) =>
         context.Transacoes
             .AsNoTracking()
             .Include(t => t.Categoria)
             .Include(t => t.Conta)
-            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(t => t.Id == id && t.UsuarioId == usuarioId, cancellationToken);
 
-    public async Task<PagedResult<Transacao>> ListarAsync(TransacaoFiltroDto filtro, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<Transacao>> ListarAsync(int usuarioId, TransacaoFiltroDto filtro, CancellationToken cancellationToken = default)
     {
         var page = Math.Max(filtro.Page, 1);
         var pageSize = Math.Clamp(filtro.PageSize, 1, TransacaoFiltroDto.PageSizeMaximo);
 
-        var query = context.Transacoes.AsNoTracking();
+        var query = context.Transacoes.AsNoTracking().Where(t => t.UsuarioId == usuarioId);
 
         if (filtro.DataInicio is { } dataInicio)
         {
@@ -64,7 +65,7 @@ public class TransacaoRepository(AppDbContext context) : ITransacaoRepository
     public async Task<bool> AtualizarAsync(Transacao transacao, CancellationToken cancellationToken = default)
     {
         var linhas = await context.Transacoes
-            .Where(t => t.Id == transacao.Id)
+            .Where(t => t.Id == transacao.Id && t.UsuarioId == transacao.UsuarioId)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(t => t.Descricao, transacao.Descricao)
                 .SetProperty(t => t.Valor, transacao.Valor)
@@ -77,19 +78,19 @@ public class TransacaoRepository(AppDbContext context) : ITransacaoRepository
         return linhas > 0;
     }
 
-    public async Task<bool> RemoverAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<bool> RemoverAsync(int id, int usuarioId, CancellationToken cancellationToken = default)
     {
         var linhas = await context.Transacoes
-            .Where(t => t.Id == id)
+            .Where(t => t.Id == id && t.UsuarioId == usuarioId)
             .ExecuteDeleteAsync(cancellationToken);
 
         return linhas > 0;
     }
 
-    public async Task<(decimal Receitas, decimal Despesas)> ObterTotaisPorContaAsync(int contaId, CancellationToken cancellationToken = default)
+    public async Task<(decimal Receitas, decimal Despesas)> ObterTotaisPorContaAsync(int contaId, int usuarioId, CancellationToken cancellationToken = default)
     {
         var totais = await context.Transacoes
-            .Where(t => t.ContaId == contaId)
+            .Where(t => t.ContaId == contaId && t.UsuarioId == usuarioId)
             .GroupBy(t => t.Tipo)
             .Select(g => new { Tipo = g.Key, Total = g.Sum(t => t.Valor) })
             .ToListAsync(cancellationToken);

@@ -1,11 +1,13 @@
 using FinTrack.Application.Common;
 using FinTrack.Application.DTOs;
 using FinTrack.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinTrack.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 [Produces("application/json")]
 public class TransacoesController(ITransacaoService transacaoService) : ControllerBase

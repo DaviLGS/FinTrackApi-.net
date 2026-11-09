@@ -1,15 +1,40 @@
 @FinTrack.Api_HostAddress = http://localhost:5215
 
+### Cadastrar usuário (201; 409 se o e-mail já existir)
+POST {{FinTrack.Api_HostAddress}}/api/auth/registrar
+Content-Type: application/json
+
+{
+  "email": "davi@exemplo.com",
+  "senha": "senha-forte-123"
+}
+
+### Login: o token da resposta é usado nas próximas requisições
+# @name login
+POST {{FinTrack.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "davi@exemplo.com",
+  "senha": "senha-forte-123"
+}
+
+###
+@token = {{login.response.body.$.accessToken}}
+
 ### Listar categorias
 GET {{FinTrack.Api_HostAddress}}/api/categorias
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Listar contas
 GET {{FinTrack.Api_HostAddress}}/api/contas
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Criar transação (201)
 POST {{FinTrack.Api_HostAddress}}/api/transacoes
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -23,6 +48,7 @@ Content-Type: application/json
 
 ### Criar transação inválida (400)
 POST {{FinTrack.Api_HostAddress}}/api/transacoes
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -36,6 +62,7 @@ Content-Type: application/json
 
 ### Tipo incompatível com a categoria (422)
 POST {{FinTrack.Api_HostAddress}}/api/transacoes
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -49,12 +76,29 @@ Content-Type: application/json
 
 ### Listar transações com filtros
 GET {{FinTrack.Api_HostAddress}}/api/transacoes?tipo=Despesa&page=1&pageSize=10
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Obter transação por id
 GET {{FinTrack.Api_HostAddress}}/api/transacoes/1
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Transação inexistente (404)
 GET {{FinTrack.Api_HostAddress}}/api/transacoes/999999
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Relatório mensal
+GET {{FinTrack.Api_HostAddress}}/api/relatorios/mensal?ano=2026&mes=10
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Relatório anual
+GET {{FinTrack.Api_HostAddress}}/api/relatorios/anual?ano=2026
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Sem token (401)
+GET {{FinTrack.Api_HostAddress}}/api/transacoes
 Accept: application/json

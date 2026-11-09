@@ -153,6 +153,16 @@ FinTrackApi-.net/
 | ContaId | int | FK → Conta (obrigatória, deve existir) |
 | CriadoEm | DateTime (UTC) | preenchido automaticamente |
 
+**Usuario**
+| Campo | Tipo | Regras |
+|---|---|---|
+| Id | int | PK |
+| Email | string | obrigatório, máx. 254, único, salvo em minúsculas |
+| SenhaHash | string | hash PBKDF2 (`PasswordHasher` do ASP.NET Core Identity) |
+| CriadoEm | DateTime (UTC) | preenchido no cadastro |
+
+`Transacao` também tem `UsuarioId` (FK → Usuario, `OnDelete: Cascade`): cada usuário só acessa as próprias transações.
+
 **Enum `TipoTransacao`**: `Receita = 1`, `Despesa = 2`.
 
 ### Relacionamentos
@@ -185,12 +195,18 @@ FinTrackApi-.net/
 | GET | `/api/transacoes` | Lista transações (filtros: `dataInicio`, `dataFim`, `categoriaId`, `contaId`, `tipo`; paginação: `page`, `pageSize`) | 200 / 400 |
 | GET | `/api/transacoes/{id}` | Detalhe de uma transação | 200 / 404 |
 | POST | `/api/transacoes` | Cria transação | 201 (Location) / 400 (ValidationProblemDetails) / 422 (regra de negócio) |
+| POST | `/api/auth/registrar` | Cadastro com e-mail e senha | 201 / 400 / 409 |
+| POST | `/api/auth/login` | Login, retorna o token JWT | 200 / 400 / 401 |
+| GET | `/api/relatorios/mensal` | Gastos e entradas por categoria no mês | 200 / 400 |
+| GET | `/api/relatorios/anual` | Gastos e entradas por categoria no ano, com cada mês | 200 / 400 |
 | GET | `/api/categorias` | Lista categorias | 200 |
 | GET | `/api/contas` | Lista contas | 200 |
 | GET | `/api/contas/{id}/saldo` | Saldo calculado | 200 / 404 |
 | PUT | `/api/transacoes/{id}` | Substitui os dados | 200 / 400 / 404 / 422 |
 | DELETE | `/api/transacoes/{id}` | Remove | 204 / 404 |
 | GET | `/health` | API e conexão com o banco | 200 / 503 |
+
+Todas as rotas exigem `Authorization: Bearer <token>`, exceto `/api/auth/*` e `/health`.
 
 Erros padronizados em **ProblemDetails** (RFC 7807) via middleware global de exceções.
 
@@ -256,7 +272,6 @@ Estratégia de Git adotada: commits diretos em `main` com mensagens no padrão C
 
 ## 9. Evoluções futuras (fora do escopo inicial)
 - CRUD de categorias e contas.
-- Autenticação JWT.
 - Testes de integração com `WebApplicationFactory` + Testcontainers (PostgreSQL).
 - CI no GitHub Actions (build + test).
 - Logging estruturado (Serilog) e health checks (`/health`).

@@ -13,7 +13,8 @@ public class TransacaoService(
     ICategoriaRepository categoriaRepository,
     IContaRepository contaRepository,
     IValidator<TransacaoCreateDto> createValidator,
-    IValidator<TransacaoFiltroDto> filtroValidator) : ITransacaoService
+    IValidator<TransacaoFiltroDto> filtroValidator,
+    IUsuarioAtual usuarioAtual) : ITransacaoService
 {
     public async Task<TransacaoResponseDto> CriarAsync(TransacaoCreateDto dto, CancellationToken cancellationToken = default)
     {
@@ -21,7 +22,7 @@ public class TransacaoService(
 
         var (categoria, conta) = await ObterReferenciasAsync(dto, cancellationToken);
 
-        var transacao = new Transacao();
+        var transacao = new Transacao { UsuarioId = usuarioAtual.Id };
         AplicarDados(transacao, dto);
 
         await transacaoRepository.AdicionarAsync(transacao, cancellationToken);
@@ -33,7 +34,7 @@ public class TransacaoService(
     {
         await createValidator.ValidateAndThrowAsync(dto, cancellationToken);
 
-        var transacao = await transacaoRepository.ObterPorIdAsync(id, cancellationToken)
+        var transacao = await transacaoRepository.ObterPorIdAsync(id, usuarioAtual.Id, cancellationToken)
             ?? throw new NotFoundException("Transação", id);
 
         var (categoria, conta) = await ObterReferenciasAsync(dto, cancellationToken);
@@ -48,13 +49,13 @@ public class TransacaoService(
 
     public async Task RemoverAsync(int id, CancellationToken cancellationToken = default)
     {
-        if (!await transacaoRepository.RemoverAsync(id, cancellationToken))
+        if (!await transacaoRepository.RemoverAsync(id, usuarioAtual.Id, cancellationToken))
             throw new NotFoundException("Transação", id);
     }
 
     public async Task<TransacaoResponseDto> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var transacao = await transacaoRepository.ObterPorIdAsync(id, cancellationToken)
+        var transacao = await transacaoRepository.ObterPorIdAsync(id, usuarioAtual.Id, cancellationToken)
             ?? throw new NotFoundException("Transação", id);
 
         return transacao.ToDto();
@@ -64,7 +65,7 @@ public class TransacaoService(
     {
         await filtroValidator.ValidateAndThrowAsync(filtro, cancellationToken);
 
-        var resultado = await transacaoRepository.ListarAsync(filtro, cancellationToken);
+        var resultado = await transacaoRepository.ListarAsync(usuarioAtual.Id, filtro, cancellationToken);
 
         return new PagedResult<TransacaoResponseDto>(
             resultado.Items.Select(t => t.ToDto()).ToList(),

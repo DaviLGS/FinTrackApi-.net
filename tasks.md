@@ -180,6 +180,17 @@
 - [x] `dotnet build` + `dotnet test` finais (em clone limpo: 0 avisos, 33 testes aprovados; compose também validado com banco vazio)
 - [x] Commit `docs: readme` e `git push`
 
+## Fase 10 — Usuários, JWT e relatórios
+- [x] Entidade `Usuario` (e-mail único em minúsculas, hash da senha) e `Transacao.UsuarioId`
+- [x] Migration `AdicionarUsuarios` (apaga as transações antigas, que não têm dono)
+- [x] `POST /api/auth/registrar` (e-mail válido, senha de 8 a 128 caracteres; e-mail repetido → 409)
+- [x] `POST /api/auth/login` → token JWT HS256 de 60 minutos (`sub` = id do usuário); credenciais erradas → 401 com mensagem única
+- [x] Rotas protegidas com `[Authorize]`; transações, saldo e relatórios restritos ao usuário do token
+- [x] Chave do JWT em `Jwt:Key` (dev no `appsettings.Development.json`; `JWT_KEY` no `.env` para o compose)
+- [x] Botão Authorize no Swagger
+- [x] `GET /api/relatorios/mensal` e `GET /api/relatorios/anual` (gastos e entradas por categoria, com percentual; anual com os 12 meses)
+- [x] Testes unitários (auth, token, hash, relatórios) e de integração (login, 401, isolamento entre usuários, relatórios)
+
 ## Extras (opcional)
 - [x] PUT/DELETE de transações
 - [ ] Antes de um CRUD de categorias/contas: ajustar as sequences de identity após o seed (`HasData` usa Ids fixos 1..N e a sequence começa em 1)

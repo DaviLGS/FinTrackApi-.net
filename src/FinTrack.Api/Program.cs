@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
+using FinTrack.Api.Auth;
 using FinTrack.Api.Middlewares;
 using FinTrack.Application;
 using FinTrack.Infrastructure;
@@ -17,6 +18,7 @@ builder.Host.UseSerilog((context, configuration) => configuration
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddJwtAuthentication();
 
 builder.Services
     .AddControllers()
@@ -31,6 +33,7 @@ builder.Services.AddSwaggerGen(options =>
 {
     var xmlPath = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
     options.IncludeXmlComments(xmlPath);
+    options.AdicionarJwt();
 });
 
 var app = builder.Build();
@@ -51,6 +54,7 @@ else
     app.UseHttpsRedirection();
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health");

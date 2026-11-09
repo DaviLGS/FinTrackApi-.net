@@ -168,6 +168,10 @@ namespace FinTrack.Infrastructure.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("tipo");
 
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
                     b.Property<decimal>("Valor")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -185,7 +189,45 @@ namespace FinTrack.Infrastructure.Migrations
                     b.HasIndex("Data")
                         .HasDatabaseName("ix_transacoes_data");
 
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_transacoes_usuario_id");
+
                     b.ToTable("transacoes", (string)null);
+                });
+
+            modelBuilder.Entity("FinTrack.Domain.Entities.Usuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("criado_em");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("SenhaHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("senha_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_usuarios");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_usuarios_email");
+
+                    b.ToTable("usuarios", (string)null);
                 });
 
             modelBuilder.Entity("FinTrack.Domain.Entities.Transacao", b =>
@@ -204,9 +246,18 @@ namespace FinTrack.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_transacoes_contas_conta_id");
 
+                    b.HasOne("FinTrack.Domain.Entities.Usuario", "Usuario")
+                        .WithMany("Transacoes")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_transacoes_usuarios_usuario_id");
+
                     b.Navigation("Categoria");
 
                     b.Navigation("Conta");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("FinTrack.Domain.Entities.Categoria", b =>
@@ -215,6 +266,11 @@ namespace FinTrack.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("FinTrack.Domain.Entities.Conta", b =>
+                {
+                    b.Navigation("Transacoes");
+                });
+
+            modelBuilder.Entity("FinTrack.Domain.Entities.Usuario", b =>
                 {
                     b.Navigation("Transacoes");
                 });

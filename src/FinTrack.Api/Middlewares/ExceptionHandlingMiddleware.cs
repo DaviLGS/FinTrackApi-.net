@@ -7,7 +7,7 @@ namespace FinTrack.Api.Middlewares;
 
 /// <summary>
 /// Converte exceções em respostas ProblemDetails (RFC 7807):
-/// ValidationException → 400, NotFoundException → 404, BusinessRuleException → 422, demais → 500.
+/// ValidationException → 400, CredenciaisInvalidas → 401, NotFound → 404, Conflict → 409, BusinessRule → 422, demais → 500.
 /// </summary>
 public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
@@ -46,6 +46,18 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         {
             Status = StatusCodes.Status404NotFound,
             Title = "Recurso não encontrado.",
+            Detail = ex.Message
+        },
+        ConflictException => new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = "Conflito com um recurso existente.",
+            Detail = ex.Message
+        },
+        CredenciaisInvalidasException => new ProblemDetails
+        {
+            Status = StatusCodes.Status401Unauthorized,
+            Title = "Não autorizado.",
             Detail = ex.Message
         },
         BusinessRuleException => new ProblemDetails

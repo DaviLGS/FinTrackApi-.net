@@ -23,10 +23,14 @@ public class TransacaoServiceTests
     private readonly ITransacaoRepository _transacaoRepository = Substitute.For<ITransacaoRepository>();
     private readonly ICategoriaRepository _categoriaRepository = Substitute.For<ICategoriaRepository>();
     private readonly IContaRepository _contaRepository = Substitute.For<IContaRepository>();
+    private readonly IUsuarioAtual _usuarioAtual = Substitute.For<IUsuarioAtual>();
     private readonly TransacaoService _service;
+
+    private const int UsuarioId = 7;
 
     public TransacaoServiceTests()
     {
+        _usuarioAtual.Id.Returns(UsuarioId);
         _categoriaRepository.ObterPorIdAsync(Alimentacao.Id, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Categoria?>(Alimentacao));
         _categoriaRepository.ObterPorIdAsync(Salario.Id, Arg.Any<CancellationToken>())
@@ -39,7 +43,8 @@ public class TransacaoServiceTests
             _categoriaRepository,
             _contaRepository,
             new TransacaoCreateValidator(new FakeTimeProvider(Agora)),
-            new TransacaoFiltroValidator());
+            new TransacaoFiltroValidator(),
+            _usuarioAtual);
     }
 
     private static TransacaoCreateDto DtoValido() => new()
@@ -63,6 +68,7 @@ public class TransacaoServiceTests
 
         await _transacaoRepository.Received(1).AdicionarAsync(
             Arg.Is<Transacao>(t =>
+                t.UsuarioId == UsuarioId &&
                 t.Descricao == "Almoço" &&
                 t.Valor == 42.90m &&
                 t.Tipo == TipoTransacao.Despesa &&
@@ -148,7 +154,7 @@ public class TransacaoServiceTests
             ContaId = Carteira.Id,
             Conta = Carteira
         };
-        _transacaoRepository.ObterPorIdAsync(5, Arg.Any<CancellationToken>())
+        _transacaoRepository.ObterPorIdAsync(5, UsuarioId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Transacao?>(transacao));
 
         var resultado = await _service.ObterPorIdAsync(5);
@@ -162,7 +168,7 @@ public class TransacaoServiceTests
     public async Task AtualizarAsync_com_dados_validos_persiste_e_preserva_CriadoEm()
     {
         var criadoEm = Agora.UtcDateTime.AddDays(-5);
-        _transacaoRepository.ObterPorIdAsync(5, Arg.Any<CancellationToken>())
+        _transacaoRepository.ObterPorIdAsync(5, UsuarioId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Transacao?>(new Transacao { Id = 5, Descricao = "Antiga", CriadoEm = criadoEm }));
         _transacaoRepository.AtualizarAsync(Arg.Any<Transacao>(), Arg.Any<CancellationToken>()).Returns(true);
 
@@ -187,7 +193,7 @@ public class TransacaoServiceTests
     [Fact]
     public async Task AtualizarAsync_removida_durante_a_operacao_lanca_NotFoundException()
     {
-        _transacaoRepository.ObterPorIdAsync(5, Arg.Any<CancellationToken>())
+        _transacaoRepository.ObterPorIdAsync(5, UsuarioId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Transacao?>(new Transacao { Id = 5 }));
         _transacaoRepository.AtualizarAsync(Arg.Any<Transacao>(), Arg.Any<CancellationToken>()).Returns(false);
 
@@ -197,7 +203,7 @@ public class TransacaoServiceTests
     [Fact]
     public async Task AtualizarAsync_com_tipo_incompativel_lanca_BusinessRuleException_e_nao_persiste()
     {
-        _transacaoRepository.ObterPorIdAsync(5, Arg.Any<CancellationToken>())
+        _transacaoRepository.ObterPorIdAsync(5, UsuarioId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Transacao?>(new Transacao { Id = 5 }));
         var dto = DtoValido() with { CategoriaId = Salario.Id };
 
@@ -209,7 +215,7 @@ public class TransacaoServiceTests
     [Fact]
     public async Task RemoverAsync_inexistente_lanca_NotFoundException()
     {
-        _transacaoRepository.RemoverAsync(999, Arg.Any<CancellationToken>()).Returns(false);
+        _transacaoRepository.RemoverAsync(999, UsuarioId, Arg.Any<CancellationToken>()).Returns(false);
 
         await Assert.ThrowsAsync<NotFoundException>(() => _service.RemoverAsync(999));
     }
@@ -217,11 +223,11 @@ public class TransacaoServiceTests
     [Fact]
     public async Task RemoverAsync_existente_conclui_sem_erro()
     {
-        _transacaoRepository.RemoverAsync(5, Arg.Any<CancellationToken>()).Returns(true);
+        _transacaoRepository.RemoverAsync(5, UsuarioId, Arg.Any<CancellationToken>()).Returns(true);
 
         await _service.RemoverAsync(5);
 
-        await _transacaoRepository.Received(1).RemoverAsync(5, Arg.Any<CancellationToken>());
+        await _transacaoRepository.Received(1).RemoverAsync(5, UsuarioId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -231,7 +237,7 @@ public class TransacaoServiceTests
 
         await Assert.ThrowsAsync<ValidationException>(() => _service.ListarAsync(filtro));
 
-        await _transacaoRepository.DidNotReceiveWithAnyArgs().ListarAsync(default!, default);
+        await _transacaoRepository.DidNotReceiveWithAnyArgs().ListarAsync(default, default!, default);
     }
 
     [Fact]
@@ -250,7 +256,7 @@ public class TransacaoServiceTests
             ContaId = Carteira.Id,
             Conta = Carteira
         };
-        _transacaoRepository.ListarAsync(filtro, Arg.Any<CancellationToken>())
+        _transacaoRepository.ListarAsync(UsuarioId, filtro, Arg.Any<CancellationToken>())
             .Returns(new PagedResult<Transacao>([transacao], 2, 1, 3));
 
         var resultado = await _service.ListarAsync(filtro);

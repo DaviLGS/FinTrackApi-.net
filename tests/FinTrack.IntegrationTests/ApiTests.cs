@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using FinTrack.Application.Common;
 using FinTrack.Application.DTOs;
 using FinTrack.Domain.Enums;
@@ -9,9 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FinTrack.IntegrationTests;
 
-// Os testes compartilham o banco. Por isso cada um confere só as transações que criou
-// e os testes de saldo usam a conta 2, que nenhum outro teste movimenta.
-public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
+// O xUnit cria uma instância da classe por teste, e cada uma cadastra o próprio usuário:
+// como as transações são isoladas por usuário, um teste não enxerga os dados do outro.
+public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>, IAsyncLifetime
 {
     private const int CategoriaSalario = 1;
     private const int CategoriaAlimentacao = 3;
@@ -19,12 +18,13 @@ public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     private const int ContaCarteira = 1;
     private const int ContaCorrente = 2;
 
-    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
-    {
-        Converters = { new JsonStringEnumConverter() }
-    };
+    private static readonly JsonSerializerOptions Json = ApiFactory.Json;
 
-    private readonly HttpClient _client = factory.CreateClient();
+    private HttpClient _client = null!;
+
+    public async Task InitializeAsync() => _client = await factory.CriarClienteAutenticadoAsync();
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     private static TransacaoCreateDto Despesa(string descricao = "Almoço", decimal valor = 42.90m, int contaId = ContaCarteira) => new()
     {
@@ -59,7 +59,7 @@ public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [Fact]
     public async Task Health_responde_saudavel_com_o_banco_no_ar()
     {
-        var resposta = await _client.GetAsync("/health");
+        var resposta = await factory.CreateClient().GetAsync("/health");
 
         Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
         Assert.Equal("Healthy", await resposta.Content.ReadAsStringAsync());

@@ -5,7 +5,10 @@ using FinTrack.Application.Mappings;
 
 namespace FinTrack.Application.Services;
 
-public class ContaService(IContaRepository contaRepository, ITransacaoRepository transacaoRepository) : IContaService
+public class ContaService(
+    IContaRepository contaRepository,
+    ITransacaoRepository transacaoRepository,
+    IUsuarioAtual usuarioAtual) : IContaService
 {
     public async Task<IReadOnlyList<ContaDto>> ListarAsync(CancellationToken cancellationToken = default)
     {
@@ -18,7 +21,7 @@ public class ContaService(IContaRepository contaRepository, ITransacaoRepository
         var conta = await contaRepository.ObterPorIdAsync(id, cancellationToken)
             ?? throw new NotFoundException("Conta", id);
 
-        var (receitas, despesas) = await transacaoRepository.ObterTotaisPorContaAsync(id, cancellationToken);
+        var (receitas, despesas) = await transacaoRepository.ObterTotaisPorContaAsync(id, usuarioAtual.Id, cancellationToken);
 
         return new ContaSaldoDto(
             conta.Id,
