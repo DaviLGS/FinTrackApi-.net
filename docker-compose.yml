@@ -18,5 +18,22 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build:
+      context: .
+      dockerfile: src/FinTrack.Api/Dockerfile
+    image: fintrack-api
+    container_name: fintrack-api
+    restart: unless-stopped
+    environment:
+      # Development habilita o Swagger e aplica as migrations no startup
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB:-fintrack};Username=${POSTGRES_USER:-fintrack};Password=${POSTGRES_PASSWORD}"
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:

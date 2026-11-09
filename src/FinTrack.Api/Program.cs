@@ -4,8 +4,14 @@ using FinTrack.Api.Middlewares;
 using FinTrack.Application;
 using FinTrack.Infrastructure;
 using FinTrack.Infrastructure.Context;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
 
 // Add services to the container.
 
@@ -30,6 +36,7 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseSerilogRequestLogging();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -46,6 +53,7 @@ else
 
 app.UseAuthorization();
 
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 app.Run();

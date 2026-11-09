@@ -18,10 +18,10 @@
 ## Fase 1 — Preparação do ambiente
 - [x] Instalar .NET SDK (10 LTS, mínimo 8.0) e conferir: `dotnet --version`
 - [x] Instalar VS Code
-- [ ] Instalar extensões: **C# Dev Kit**, **Container Tools/Docker** (Microsoft), **PostgreSQL** (Microsoft)
-- [ ] Habilitar WSL 2 no Windows (`wsl --install`, se necessário)
+- [x] Instalar extensões: **C# Dev Kit**, **Container Tools/Docker** (Microsoft), **PostgreSQL** (Microsoft)
+- [x] Habilitar WSL 2 no Windows (`wsl --install`, se necessário)
 - [x] Instalar **Rancher Desktop**
-- [ ] Em Preferences → Container Engine, selecionar **dockerd (moby)**
+- [x] Em Preferences → Container Engine, selecionar **dockerd (moby)**
 - [ ] Desabilitar Kubernetes no Rancher (opcional, economiza memória)
 - [x] Conferir: `docker version` e `docker compose version`
 - [x] Instalar ferramenta EF como tool **local** (manifesto `dotnet-tools.json` versionado): `dotnet new tool-manifest` + `dotnet tool install dotnet-ef` — em outra máquina basta `dotnet tool restore`
@@ -160,31 +160,31 @@
 - [x] Commit `test: testes unitários de validator e service`
 
 ## Fase 8 — Containerização (Rancher Desktop)
-- [ ] Criar `src/FinTrack.Api/Dockerfile` multi-stage (sdk → aspnet), copiando `.csproj` antes do código para cache de restore
-- [ ] Criar `.dockerignore` na raiz (`bin/`, `obj/`, `.vs/`, `.vscode/`, `.git/`, `.env`)
-- [ ] Completar `docker-compose.yml`:
-  - [ ] Serviço `api` com `build: { context: ., dockerfile: src/FinTrack.Api/Dockerfile }`
-  - [ ] Porta `8080:8080`
-  - [ ] `ConnectionStrings__DefaultConnection` apontando para `Host=db`
-  - [ ] `ASPNETCORE_ENVIRONMENT=Development`
-  - [ ] `depends_on: db: condition: service_healthy`
-- [ ] Subir tudo: `docker compose up --build`
-- [ ] Acessar `http://localhost:8080/swagger` e repetir os testes da Fase 6
-- [ ] Verificar persistência: `docker compose down` + `docker compose up` mantém os dados (volume)
-- [ ] Commit `feat: dockerfile e docker-compose`
+- [x] Criar `src/FinTrack.Api/Dockerfile` multi-stage (sdk → aspnet), copiando `.csproj` antes do código para cache de restore; roda com usuário não-root (`$APP_UID`)
+- [x] Criar `.dockerignore` na raiz (`bin/`, `obj/`, `.vs/`, `.vscode/`, `.git/`, `.env`, `tests/`)
+- [x] Completar `docker-compose.yml`:
+  - [x] Serviço `api` com `build: { context: ., dockerfile: src/FinTrack.Api/Dockerfile }`
+  - [x] Porta `${API_PORT:-8080}:8080` (`API_PORT` adicionado ao `.env.example`)
+  - [x] `ConnectionStrings__DefaultConnection` apontando para `Host=db`, montada com as variáveis do `.env`
+  - [x] `ASPNETCORE_ENVIRONMENT=Development`
+  - [x] `depends_on: db: condition: service_healthy`
+- [x] Subir tudo: `docker compose up --build` (ou `-d` para rodar em segundo plano)
+- [x] Acessar `http://localhost:8080/swagger` e repetir os testes da Fase 6 (GET 200, POST 201, POST inválido 400)
+- [x] Verificar persistência: `docker compose down` + `docker compose up` mantém os dados (volume)
+- [x] Commit `feat: dockerfile e docker-compose`
 
 ## Fase 9 — Documentação e entrega
-- [ ] Completar `README.md`: descrição, arquitetura, pré-requisitos (.NET, Rancher Desktop), como rodar local e via compose, como rodar migrations e testes, lista de endpoints
-- [ ] Revisar `PLAN.md` / `tasks.md` (marcar o que foi feito)
-- [ ] Conferir que nenhum segredo (`.env`) foi commitado
-- [ ] `dotnet build` + `dotnet test` finais
-- [ ] Commit `docs: readme` e `git push`
+- [x] Completar `README.md`: descrição, arquitetura, pré-requisitos (.NET, Rancher Desktop), como rodar local e via compose, como rodar migrations e testes, lista de endpoints
+- [x] Revisar `PLAN.md` / `tasks.md` (marcar o que foi feito)
+- [x] Conferir que nenhum segredo (`.env`) foi commitado
+- [x] `dotnet build` + `dotnet test` finais (em clone limpo: 0 avisos, 33 testes aprovados; compose também validado com banco vazio)
+- [x] Commit `docs: readme` e `git push`
 
 ## Extras (opcional)
-- [ ] PUT/DELETE de transações
+- [x] PUT/DELETE de transações
 - [ ] Antes de um CRUD de categorias/contas: ajustar as sequences de identity após o seed (`HasData` usa Ids fixos 1..N e a sequence começa em 1)
-- [ ] Endpoint de saldo por conta
-- [ ] Health check `/health` (incluindo Postgres)
-- [ ] GitHub Actions: build + test em push/PR
-- [ ] Testes de integração com `WebApplicationFactory` + Testcontainers
-- [ ] Logging com Serilog
+- [x] Endpoint de saldo por conta (`GET /api/contas/{id}/saldo`)
+- [x] Health check `/health` (incluindo Postgres; banco fora do ar → 503)
+- [ ] GitHub Actions: build + test em push/PR (`.github/workflows/ci.yml` criado; falta confirmar a primeira execução no GitHub, após o push)
+- [x] Testes de integração com `WebApplicationFactory` + Testcontainers (`tests/FinTrack.IntegrationTests`, 14 testes)
+- [x] Logging com Serilog

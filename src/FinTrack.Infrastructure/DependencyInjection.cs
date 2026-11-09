@@ -18,6 +18,8 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString)
                    .UseSnakeCaseNamingConvention());
 
+        services.AddHealthChecks().AddDbContextCheck<AppDbContext>("postgres");
+
         services.AddScoped<ICategoriaRepository, CategoriaRepository>();
         services.AddScoped<IContaRepository, ContaRepository>();
         services.AddScoped<ITransacaoRepository, TransacaoRepository>();
