@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace FinTrack.Application.Validators;
 
-public class RelatorioAnualValidator : AbstractValidator<RelatorioFiltroDto>
+public class RelatorioAnualValidator : AbstractValidator<RelatorioAnualFiltroDto>
 {
     public const int AnoMinimo = 2000;
     public const int AnoMaximo = 2100;
@@ -16,11 +16,13 @@ public class RelatorioAnualValidator : AbstractValidator<RelatorioFiltroDto>
     }
 }
 
-public class RelatorioMensalValidator : AbstractValidator<RelatorioFiltroDto>
+public class RelatorioMensalValidator : AbstractValidator<RelatorioMensalFiltroDto>
 {
     public RelatorioMensalValidator()
     {
-        Include(new RelatorioAnualValidator());
+        RuleFor(f => f.Ano)
+            .InclusiveBetween(RelatorioAnualValidator.AnoMinimo, RelatorioAnualValidator.AnoMaximo)
+            .WithMessage($"Informe um ano entre {RelatorioAnualValidator.AnoMinimo} e {RelatorioAnualValidator.AnoMaximo}.");
 
         RuleFor(f => f.Mes)
             .NotNull().WithMessage("Informe o mês.")

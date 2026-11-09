@@ -37,7 +37,7 @@ public class RelatorioServiceTests
         _repository.ObterTotaisPorCategoriaAsync(UsuarioId, inicio, inicio.AddMonths(1), Arg.Any<CancellationToken>())
             .Returns(Totais);
 
-        var relatorio = await _service.GerarMensalAsync(new RelatorioFiltroDto { Ano = 2026, Mes = 10 });
+        var relatorio = await _service.GerarMensalAsync(new RelatorioMensalFiltroDto { Ano = 2026, Mes = 10 });
 
         Assert.Equal(6000m, relatorio.TotalReceitas);
         Assert.Equal(1000m, relatorio.TotalDespesas);
@@ -57,7 +57,7 @@ public class RelatorioServiceTests
     {
         _repository.ObterTotaisPorCategoriaAsync(default, default, default).ReturnsForAnyArgs([]);
 
-        var relatorio = await _service.GerarMensalAsync(new RelatorioFiltroDto { Ano = 2026, Mes = 2 });
+        var relatorio = await _service.GerarMensalAsync(new RelatorioMensalFiltroDto { Ano = 2026, Mes = 2 });
 
         Assert.Equal(0m, relatorio.Saldo);
         Assert.Empty(relatorio.DespesasPorCategoria);
@@ -79,7 +79,7 @@ public class RelatorioServiceTests
                 new TotalPorMes(3, TipoTransacao.Despesa, 300m)
             ]);
 
-        var relatorio = await _service.GerarAnualAsync(new RelatorioFiltroDto { Ano = 2026 });
+        var relatorio = await _service.GerarAnualAsync(new RelatorioAnualFiltroDto { Ano = 2026 });
 
         Assert.Equal(5000m, relatorio.Saldo);
         Assert.Equal(Enumerable.Range(1, 12), relatorio.Meses.Select(m => m.Mes));
@@ -97,12 +97,12 @@ public class RelatorioServiceTests
     public async Task Mensal_com_ano_ou_mes_invalido_lanca_ValidationException(int ano, int? mes)
     {
         await Assert.ThrowsAsync<ValidationException>(() =>
-            _service.GerarMensalAsync(new RelatorioFiltroDto { Ano = ano, Mes = mes }));
+            _service.GerarMensalAsync(new RelatorioMensalFiltroDto { Ano = ano, Mes = mes }));
     }
 
     [Fact]
     public async Task Anual_com_ano_invalido_lanca_ValidationException()
     {
-        await Assert.ThrowsAsync<ValidationException>(() => _service.GerarAnualAsync(new RelatorioFiltroDto { Ano = 2101 }));
+        await Assert.ThrowsAsync<ValidationException>(() => _service.GerarAnualAsync(new RelatorioAnualFiltroDto { Ano = 2101 }));
     }
 }

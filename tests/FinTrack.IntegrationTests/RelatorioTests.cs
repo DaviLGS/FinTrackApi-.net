@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FinTrack.Application.DTOs;
 using FinTrack.Domain.Enums;
 
@@ -80,5 +81,19 @@ public class RelatorioTests(ApiFactory factory) : IClassFixture<ApiFactory>, IAs
         var resposta = await _client.GetAsync(rota);
 
         Assert.Equal(HttpStatusCode.BadRequest, resposta.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("/api/relatorios/mensal", new[] { "Ano", "Mes" })]
+    [InlineData("/api/relatorios/anual", new[] { "Ano" })]
+    public async Task Swagger_documenta_so_os_parametros_usados_por_cada_relatorio(string rota, string[] esperados)
+    {
+        using var swagger = JsonDocument.Parse(await _client.GetStringAsync("/swagger/v1/swagger.json"));
+
+        var parametros = swagger.RootElement
+            .GetProperty("paths").GetProperty(rota).GetProperty("get").GetProperty("parameters")
+            .EnumerateArray().Select(p => p.GetProperty("name").GetString());
+
+        Assert.Equal(esperados, parametros);
     }
 }
