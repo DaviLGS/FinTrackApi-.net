@@ -12,7 +12,7 @@ public class RelatorioService(
     RelatorioMensalValidator mensalValidator,
     RelatorioAnualValidator anualValidator) : IRelatorioService
 {
-    public async Task<RelatorioMensalDto> GerarMensalAsync(RelatorioFiltroDto filtro, CancellationToken cancellationToken = default)
+    public async Task<RelatorioMensalDto> GerarMensalAsync(RelatorioMensalFiltroDto filtro, CancellationToken cancellationToken = default)
     {
         await mensalValidator.ValidateAndThrowAsync(filtro, cancellationToken);
 
@@ -34,7 +34,7 @@ public class RelatorioService(
             PorCategoria(totais, TipoTransacao.Receita));
     }
 
-    public async Task<RelatorioAnualDto> GerarAnualAsync(RelatorioFiltroDto filtro, CancellationToken cancellationToken = default)
+    public async Task<RelatorioAnualDto> GerarAnualAsync(RelatorioAnualFiltroDto filtro, CancellationToken cancellationToken = default)
     {
         await anualValidator.ValidateAndThrowAsync(filtro, cancellationToken);
 

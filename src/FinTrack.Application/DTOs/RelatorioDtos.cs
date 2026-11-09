@@ -1,7 +1,13 @@
 namespace FinTrack.Application.DTOs;
 
-/// <summary>Parâmetros dos relatórios. <see cref="Mes"/> só é usado no relatório mensal.</summary>
-public record RelatorioFiltroDto
+/// <summary>Parâmetros do relatório anual.</summary>
+public record RelatorioAnualFiltroDto
+{
+    public int Ano { get; init; }
+}
+
+/// <summary>Parâmetros do relatório mensal: o ano e o mês (1 a 12).</summary>
+public record RelatorioMensalFiltroDto
 {
     public int Ano { get; init; }
     public int? Mes { get; init; }
