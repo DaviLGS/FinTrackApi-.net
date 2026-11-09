@@ -185,6 +185,6 @@
 - [ ] Antes de um CRUD de categorias/contas: ajustar as sequences de identity após o seed (`HasData` usa Ids fixos 1..N e a sequence começa em 1)
 - [x] Endpoint de saldo por conta (`GET /api/contas/{id}/saldo`)
 - [x] Health check `/health` (incluindo Postgres; banco fora do ar → 503)
-- [ ] GitHub Actions: build + test em push/PR (`.github/workflows/ci.yml` criado; falta confirmar a primeira execução no GitHub, após o push)
+- [x] GitHub Actions: build + test em push/PR (`.github/workflows/ci.yml`; passou no PR #1 e na `main`; actions em Node 24: `checkout@v7`, `setup-dotnet@v6`)
 - [x] Testes de integração com `WebApplicationFactory` + Testcontainers (`tests/FinTrack.IntegrationTests`, 14 testes)
 - [x] Logging com Serilog
