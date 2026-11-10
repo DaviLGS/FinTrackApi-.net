@@ -10,6 +10,7 @@ O plano do projeto está em [PLAN.md](PLAN.md) e o andamento em [tasks.md](tasks
 
 - [Rancher Desktop](https://rancherdesktop.io/) com o container engine **dockerd (moby)**, em Preferences → Container Engine. Ele precisa estar aberto.
 - [.NET SDK 10](https://dotnet.microsoft.com/download), para rodar a API fora do container, os testes e as migrations.
+- [Node.js 20+](https://nodejs.org/), só para o front de teste em `web/`.
 
 ## Como rodar
 
@@ -59,6 +60,24 @@ O arquivo [FinTrack.Api.http](src/FinTrack.Api/FinTrack.Api.http) tem exemplos d
 | `API_PORT` | `8080` | API no container. |
 
 O `.env` também define `JWT_KEY`, a chave que assina os tokens (mínimo de 32 caracteres). Fora do desenvolvimento, use um valor aleatório. Ao rodar a API fora do container, a chave vem do `appsettings.Development.json`.
+
+## Front de teste (React)
+
+Em `web/` há um front simples, feito com **Vite + React + TypeScript**, só para testar a API pelo navegador:
+
+- **Cadastro** e **login** (o token fica no `localStorage`; ao expirar, volta para o login).
+- **Início**: relatório mensal ou anual, com entradas, gastos e saldo, gastos e entradas por categoria e, no anual, o resumo mês a mês.
+- **Lançamentos**: saldo de cada conta, formulário para adicionar ou editar gastos e entradas, e o histórico com filtro, paginação e exclusão.
+
+Com a API rodando na porta 8080 (por exemplo, com `docker compose up -d`):
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Abra http://localhost:5173. O Vite repassa as chamadas `/api` para `http://localhost:8080`, então não é preciso configurar CORS. Para usar outra porta da API, defina `API_URL` antes do `npm run dev` (por exemplo, `API_URL=http://localhost:5000`).
 
 ## Testes
 
@@ -239,6 +258,7 @@ As dependências apontam para dentro, e o Domain não depende de nenhuma outra c
 | `FinTrack.Api` | Controllers, validação do JWT, usuário atual, middleware de erros, Swagger e `Program.cs` | Application, Infrastructure |
 | `FinTrack.Tests` | Testes unitários | Application, Domain, Infrastructure |
 | `FinTrack.IntegrationTests` | Testes da API com PostgreSQL real | Api, Application |
+| `web/` | Front de teste em React, fora da solution .NET | — (consome a API por HTTP) |
 
 ## Logs
 
@@ -248,6 +268,7 @@ A API usa o Serilog e escreve no console, com uma linha por requisição. Os ní
 
 - Não há troca nem recuperação de senha, nem refresh token: quando o token expira, é preciso fazer login de novo.
 - Categorias e contas são somente leitura e vêm dos dados iniciais.
+- O front em `web/` é só para testes: não tem testes automatizados nem build para produção no compose.
 - O compose roda a API em `Development`, para ter Swagger e migrations automáticas. Ele serve para desenvolvimento, não para produção.
 - Fora de `Development`, não há Swagger nem migrations automáticas, e a connection string precisa vir de configuração (por exemplo, a variável `ConnectionStrings__DefaultConnection`).
 
