@@ -14,13 +14,11 @@ public class RelatorioTests(ApiFactory factory) : IClassFixture<ApiFactory>, IAs
     {
         _client = await factory.CriarClienteAutenticadoAsync();
 
-        // Outubro: duas despesas de alimentação, uma de transporte e o salário
         await Criar("Mercado", 300m, TipoTransacao.Despesa, categoriaId: 3, new DateTime(2026, 10, 5, 12, 0, 0, DateTimeKind.Utc));
         await Criar("Restaurante", 100m, TipoTransacao.Despesa, categoriaId: 3, new DateTime(2026, 10, 31, 23, 59, 0, DateTimeKind.Utc));
         await Criar("Ônibus", 100m, TipoTransacao.Despesa, categoriaId: 4, new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc));
         await Criar("Salário", 5000m, TipoTransacao.Receita, categoriaId: 1, new DateTime(2026, 10, 5, 9, 0, 0, DateTimeKind.Utc));
 
-        // Fora de outubro: setembro de 2026 e outubro do ano anterior
         await Criar("Aluguel", 1500m, TipoTransacao.Despesa, categoriaId: 5, new DateTime(2026, 9, 30, 23, 59, 0, DateTimeKind.Utc));
         await Criar("Freela antigo", 800m, TipoTransacao.Receita, categoriaId: 2, new DateTime(2025, 10, 10, 0, 0, 0, DateTimeKind.Utc));
     }

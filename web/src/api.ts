@@ -1,4 +1,3 @@
-// Cliente da FinTrack API. As rotas /api/... passam pelo proxy do Vite (vite.config.ts).
 
 export type Tipo = 'Receita' | 'Despesa'
 
@@ -86,7 +85,6 @@ export interface RelatorioAnual extends Omit<RelatorioMensal, 'mes'> {
   meses: RelatorioMes[]
 }
 
-/** Erro da API já com uma mensagem legível (ProblemDetails). */
 export class ApiError extends Error {
   status: number
 
@@ -104,7 +102,6 @@ export const tokenStorage = {
   clear: () => localStorage.removeItem(CHAVE_TOKEN),
 }
 
-/** Chamado quando a API responde 401 com token (expirado ou inválido). */
 let aoExpirar: () => void = () => {}
 export const definirAoExpirar = (fn: () => void) => {
   aoExpirar = fn
@@ -173,13 +170,11 @@ export const api = {
 
 export const moeda = (valor: number) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-/** Data de hoje no fuso local, no formato do input date (aaaa-mm-dd). */
 export const hoje = () => {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-/** A API guarda datas em UTC; o front trabalha só com o dia. */
 export const paraApi = (dia: string) => `${dia}T00:00:00Z`
 export const doApi = (data: string) => data.slice(0, 10)
 export const dataBr = (data: string) => doApi(data).split('-').reverse().join('/')

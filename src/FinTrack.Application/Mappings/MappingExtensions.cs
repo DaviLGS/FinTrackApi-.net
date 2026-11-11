@@ -11,7 +11,6 @@ public static class MappingExtensions
     public static ContaDto ToDto(this Conta conta) =>
         new(conta.Id, conta.Nome, conta.SaldoInicial);
 
-    /// <summary>Requer <see cref="Transacao.Categoria"/> e <see cref="Transacao.Conta"/> carregadas.</summary>
     public static TransacaoResponseDto ToDto(this Transacao transacao) =>
         transacao.ToDto(transacao.Categoria!, transacao.Conta!);
 

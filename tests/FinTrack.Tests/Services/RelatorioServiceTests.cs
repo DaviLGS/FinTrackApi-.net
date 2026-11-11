@@ -43,7 +43,6 @@ public class RelatorioServiceTests
         Assert.Equal(1000m, relatorio.TotalDespesas);
         Assert.Equal(5000m, relatorio.Saldo);
 
-        // Maior gasto primeiro, com a participação no total de despesas
         Assert.Collection(relatorio.DespesasPorCategoria,
             c => { Assert.Equal("Moradia", c.Categoria); Assert.Equal(70m, c.Percentual); },
             c => { Assert.Equal("Alimentação", c.Categoria); Assert.Equal(30m, c.Percentual); });

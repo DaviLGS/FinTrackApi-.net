@@ -13,8 +13,6 @@ public static class DependencyInjection
     {
         services.TryAddSingleton(TimeProvider.System);
 
-        // Registra cada validador pela interface e pela própria classe. Alguns DTOs têm mais de um
-        // validador (cadastro x login, relatório mensal x anual), e os serviços recebem a classe concreta.
         services.AddValidatorsFromAssemblyContaining<TransacaoCreateValidator>();
 
         services.AddScoped<ITransacaoService, TransacaoService>();

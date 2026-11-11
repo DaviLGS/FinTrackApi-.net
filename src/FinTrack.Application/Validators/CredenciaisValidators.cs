@@ -3,7 +3,6 @@ using FluentValidation;
 
 namespace FinTrack.Application.Validators;
 
-/// <summary>Regras do cadastro: e-mail válido e senha com tamanho mínimo.</summary>
 public class RegistroValidator : AbstractValidator<CredenciaisDto>
 {
     public const int EmailTamanhoMaximo = 254;
@@ -24,7 +23,6 @@ public class RegistroValidator : AbstractValidator<CredenciaisDto>
     }
 }
 
-/// <summary>Regras do login: só exige os campos, sem revelar as regras de senha.</summary>
 public class LoginValidator : AbstractValidator<CredenciaisDto>
 {
     public LoginValidator()

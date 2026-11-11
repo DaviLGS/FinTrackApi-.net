@@ -42,7 +42,6 @@ public class AuthService(
 
         var usuario = await usuarioRepository.ObterPorEmailAsync(NormalizarEmail(dto.Email), cancellationToken);
 
-        // Verifica mesmo quando o usuário não existe, para o tempo de resposta não revelar quais e-mails estão cadastrados
         if (!senhaHasher.Verificar(usuario?.SenhaHash, dto.Senha) || usuario is null)
             throw new CredenciaisInvalidasException();
 

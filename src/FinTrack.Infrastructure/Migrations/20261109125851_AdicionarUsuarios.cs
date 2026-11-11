@@ -6,14 +6,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace FinTrack.Infrastructure.Migrations
 {
-    /// <inheritdoc />
     public partial class AdicionarUsuarios : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Transações criadas antes do cadastro de usuários não têm dono e não poderiam
-            // satisfazer a nova chave estrangeira obrigatória, por isso são removidas.
             migrationBuilder.Sql("DELETE FROM transacoes;");
 
             migrationBuilder.AddColumn<int>(
@@ -58,7 +54,6 @@ namespace FinTrack.Infrastructure.Migrations
                 onDelete: ReferentialAction.Cascade);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(

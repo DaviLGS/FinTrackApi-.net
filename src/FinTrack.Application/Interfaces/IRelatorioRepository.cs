@@ -6,7 +6,6 @@ public record TotalPorCategoria(int CategoriaId, string Categoria, TipoTransacao
 
 public record TotalPorMes(int Mes, TipoTransacao Tipo, decimal Total);
 
-/// <summary>Agregações das transações de um usuário. Períodos em UTC: início inclusivo, fim exclusivo.</summary>
 public interface IRelatorioRepository
 {
     Task<IReadOnlyList<TotalPorCategoria>> ObterTotaisPorCategoriaAsync(

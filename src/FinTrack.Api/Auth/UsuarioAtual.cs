@@ -3,7 +3,6 @@ using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace FinTrack.Api.Auth;
 
-/// <summary>Lê o id do usuário da claim "sub" do token JWT da requisição.</summary>
 public class UsuarioAtual(IHttpContextAccessor httpContextAccessor) : IUsuarioAtual
 {
     public int Id

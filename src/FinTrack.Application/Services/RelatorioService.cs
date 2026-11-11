@@ -44,7 +44,6 @@ public class RelatorioService(
             usuarioAtual.Id, inicio, inicio.AddYears(1), cancellationToken);
         var totaisPorMes = await relatorioRepository.ObterTotaisPorMesAsync(usuarioAtual.Id, filtro.Ano, cancellationToken);
 
-        // Os 12 meses sempre aparecem, inclusive os sem movimentação
         var meses = Enumerable.Range(1, 12)
             .Select(mes =>
             {
@@ -69,7 +68,6 @@ public class RelatorioService(
     private static decimal Somar(IEnumerable<TotalPorCategoria> totais, TipoTransacao tipo) =>
         totais.Where(t => t.Tipo == tipo).Sum(t => t.Total);
 
-    /// <summary>Categorias do tipo, da maior para a menor, com o percentual sobre o total do tipo.</summary>
     private static List<RelatorioCategoriaDto> PorCategoria(IReadOnlyList<TotalPorCategoria> totais, TipoTransacao tipo)
     {
         var total = Somar(totais, tipo);

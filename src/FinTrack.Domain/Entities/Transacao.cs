@@ -6,10 +6,8 @@ public class Transacao : EntityBase
 {
     public string Descricao { get; set; } = string.Empty;
 
-    /// <summary>Sempre positivo; o sinal é dado pelo <see cref="Tipo"/>.</summary>
     public decimal Valor { get; set; }
 
-    /// <summary>Data da transação em UTC.</summary>
     public DateTime Data { get; set; }
 
     public TipoTransacao Tipo { get; set; }
@@ -20,7 +18,6 @@ public class Transacao : EntityBase
     public int ContaId { get; set; }
     public Conta? Conta { get; set; }
 
-    /// <summary>Dono da transação: cada usuário só enxerga as próprias.</summary>
     public int UsuarioId { get; set; }
     public Usuario? Usuario { get; set; }
 

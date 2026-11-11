@@ -9,7 +9,6 @@ using Testcontainers.PostgreSql;
 
 namespace FinTrack.IntegrationTests;
 
-/// <summary>Sobe a API em memória, ligada a um PostgreSQL real em container descartável.</summary>
 public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     public const string Senha = "senha-forte-123";
@@ -29,7 +28,6 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public static string NovoEmail() => $"usuario-{Guid.NewGuid():N}@exemplo.com";
 
-    /// <summary>Cadastra um usuário novo, faz login e devolve um cliente que já envia o token.</summary>
     public async Task<HttpClient> CriarClienteAutenticadoAsync()
     {
         var client = CreateClient();

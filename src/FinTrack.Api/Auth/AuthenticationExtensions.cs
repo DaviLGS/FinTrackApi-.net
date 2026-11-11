@@ -19,13 +19,11 @@ public static class AuthenticationExtensions
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 
-        // Valida o token com as mesmas opções usadas para gerá-lo (seção "Jwt")
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
             .Configure<IOptions<JwtOptions>>((bearer, jwtOptions) =>
             {
                 var jwt = jwtOptions.Value;
 
-                // Mantém os nomes originais das claims ("sub", "email")
                 bearer.MapInboundClaims = false;
                 bearer.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -45,7 +43,6 @@ public static class AuthenticationExtensions
         return services;
     }
 
-    /// <summary>Adiciona o botão "Authorize" no Swagger para enviar o token nas requisições.</summary>
     public static void AdicionarJwt(this SwaggerGenOptions options)
     {
         options.AddSecurityDefinition(EsquemaSwagger, new OpenApiSecurityScheme
