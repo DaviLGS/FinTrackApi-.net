@@ -8,8 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FinTrack.IntegrationTests;
 
-// O xUnit cria uma instância da classe por teste, e cada uma cadastra o próprio usuário:
-// como as transações são isoladas por usuário, um teste não enxerga os dados do outro.
 public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>, IAsyncLifetime
 {
     private const int CategoriaSalario = 1;
@@ -93,7 +91,7 @@ public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>, IAsyncLif
     }
 
     [Theory]
-    [InlineData(CategoriaSalario, ContaCarteira)] // categoria de receita em uma despesa
+    [InlineData(CategoriaSalario, ContaCarteira)]
     [InlineData(999, ContaCarteira)]
     [InlineData(CategoriaAlimentacao, 999)]
     public async Task Post_que_viola_regra_de_negocio_retorna_422(int categoriaId, int contaId)

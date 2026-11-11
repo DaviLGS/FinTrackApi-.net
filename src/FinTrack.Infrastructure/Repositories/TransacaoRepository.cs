@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinTrack.Infrastructure.Repositories;
 
-// Todas as operações filtram pelo usuário dono: transações de outro usuário se comportam como inexistentes.
 public class TransacaoRepository(AppDbContext context) : ITransacaoRepository
 {
     public Task<Transacao?> ObterPorIdAsync(int id, int usuarioId, CancellationToken cancellationToken = default) =>

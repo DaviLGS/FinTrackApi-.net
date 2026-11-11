@@ -25,7 +25,6 @@ public class UsuarioRepository(AppDbContext context) : IUsuarioRepository
         {
             await context.SaveChangesAsync(cancellationToken);
         }
-        // Dois cadastros simultâneos com o mesmo e-mail: o índice único barra o segundo
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
             throw new ConflictException("Já existe um usuário com este e-mail.");

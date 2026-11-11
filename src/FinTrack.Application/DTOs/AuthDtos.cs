@@ -1,6 +1,5 @@
 namespace FinTrack.Application.DTOs;
 
-/// <summary>Corpo do cadastro e do login: apenas e-mail e senha.</summary>
 public record CredenciaisDto
 {
     public string Email { get; init; } = string.Empty;

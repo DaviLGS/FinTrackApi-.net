@@ -12,7 +12,6 @@ namespace FinTrack.Api.Controllers;
 [Consumes("application/json")]
 public class AuthController(IAuthService authService) : ControllerBase
 {
-    /// <summary>Cadastra um usuário com e-mail e senha (mínimo de 8 caracteres).</summary>
     [HttpPost("registrar")]
     [ProducesResponseType<UsuarioDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
@@ -23,7 +22,6 @@ public class AuthController(IAuthService authService) : ControllerBase
         return StatusCode(StatusCodes.Status201Created, usuario);
     }
 
-    /// <summary>Autentica com e-mail e senha e retorna o token JWT para as demais rotas.</summary>
     [HttpPost("login")]
     [ProducesResponseType<TokenDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]

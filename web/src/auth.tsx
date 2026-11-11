@@ -10,7 +10,6 @@ interface Sessao {
 
 const AuthContext = createContext<Sessao | null>(null)
 
-/** Lê o e-mail e a expiração direto do JWT (só para exibir; quem valida é a API). */
 function lerToken(token: string | null): { email: string; exp: number } | null {
   if (!token) return null
   try {

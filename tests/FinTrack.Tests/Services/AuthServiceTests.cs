@@ -108,7 +108,6 @@ public class AuthServiceTests
     {
         await Assert.ThrowsAsync<CredenciaisInvalidasException>(() => _service.LoginAsync(Credenciais()));
 
-        // Verificação com hash nulo: gasta o mesmo tempo de quando o usuário existe
         _senhaHasher.Received(1).Verificar(null, "senha-forte-123");
         _tokenService.DidNotReceiveWithAnyArgs().Gerar(default!);
     }

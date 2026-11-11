@@ -15,7 +15,6 @@ namespace FinTrack.Infrastructure.Migrations
     [Migration("20261109125851_AdicionarUsuarios")]
     partial class AdicionarUsuarios
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

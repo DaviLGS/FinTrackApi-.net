@@ -15,7 +15,6 @@ namespace FinTrack.Infrastructure.Migrations
     [Migration("20261026210126_InitialCreate")]
     partial class InitialCreate
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

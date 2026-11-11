@@ -138,7 +138,6 @@ public class AuthTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.NotFound, (await outro.PutAsJsonAsync(rota, dto with { Valor = 1m }, ApiFactory.Json)).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await outro.DeleteAsync(rota)).StatusCode);
 
-        // A transação continua intacta para o dono
         var doDono = await dono.GetFromJsonAsync<TransacaoResponseDto>(rota, ApiFactory.Json);
         Assert.Equal(50m, doDono!.Valor);
     }
